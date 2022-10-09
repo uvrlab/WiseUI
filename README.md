@@ -6,7 +6,7 @@ ARRC-UVR Wise UI 통합 프로젝트
 ## Contents
 
 - Application/
-  - [HoloLens2StreamTCPTestUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/WiseUIApp1) 
+  - [WiseUIAppUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/WiseUIAppUnity) 
     - [HoloLens2Stream](https://github.com/IkbeomJeon/HoloLens2Stream)을 빌드하여 생성한  Plugin을 이용하여 HoloLens2의 센서 값들을 받아온 후 서버에 전송하고 결과를 Visualization하는 유니티 프로젝트.
 
   - [TCPServerPython](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/TCPServerPython)
