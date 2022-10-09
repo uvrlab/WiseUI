@@ -26,8 +26,10 @@ ARRC-UVR Wise UI 통합 프로젝트
     - HoloLens2 Stream에 접근하여 각종 센서 값을 받아오는 모듈
     
   - [wjCho, HandTracker]()
+    - To be updated
 
   - [jwJeon, SLAM]()
+    - To be updated
 
 
 
