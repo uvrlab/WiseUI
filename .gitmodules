@@ -1,6 +1,8 @@
-[submodule "modules/HoloLens2Stream"]
-	path = modules/HoloLens2Stream
+[submodule "Modules/HoloLens2Stream"]
+	path = Modules/HoloLens2Stream
 	url = git@github.com:IkbeomJeon/HoloLens2Stream.git
-[submodule "modules/ARRCObjectron"]
-	path = modules/ARRCObjectron
+	branch = master
+[submodule "Modules/ARRCObjectron"]
+	path = Modules/ARRCObjectron
 	url = git@gitlab.com:IkbeomJeon/ARRCObjectron.git
+	branch = master
