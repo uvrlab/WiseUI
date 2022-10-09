@@ -1,4 +1,4 @@
-# WiseUI Ingegration project.
+# WiseUI Integration project.
 
 ## Description
 
