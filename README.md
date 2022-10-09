@@ -71,7 +71,7 @@ Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes t
 4. Select MixedRealityToolkit Gameobject in the Hierarchy. In the Inspector, change the mixed reality configuration profile to `New XRSDKConfigurationProfile` (or `DefaultXRSDKConfigurationProfile`).
 5. Go to Build Settings, switch target platform to UWP.
 6. Hopefully, there is no error in the console. Go to Build Settings, change Target Device to HoloLens, Architecture to ARM64. Build the Unity project in a new folder (e.g. App folder).
-7. After building the visual studio solution from Unity, go to `Build/[WiseUIAppUnity]/Package.appxmanifest` and modify the <package>...</package> and <Capabilities>...</Capabilities>  like this.
+7. After building the visual studio solution from Unity, go to `Build/[WiseUIAppUnity]/Package.appxmanifest` and modify the `<package>...</package>` and `<Capabilities>...</Capabilities>`  like this.
 
 ```xml 
 <Package 
