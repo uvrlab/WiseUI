@@ -70,7 +70,7 @@ Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes t
 3. In the Project tab, open `Scenes/HoloLens2 PV Camera Test.unity`.
 4. Select MixedRealityToolkit Gameobject in the Hierarchy. In the Inspector, change the mixed reality configuration profile to `New XRSDKConfigurationProfile` (or `DefaultXRSDKConfigurationProfile`).
 5. Go to Build Settings, switch target platform to UWP.
-6. Hopefully, there is no error in the console. Go to Build Settings, change Target Device to HoloLens, Architecture to ARM64. Build the Unity project in a new folder (e.g. App folder).
+6. Hopefully, there is no error in the console. Go to Build Settings, change Target Device to HoloLens, Architecture to ARM64. Build the Unity project in a new folder (e.g. 'Build' folder).
 7. After building the visual studio solution from Unity, go to `Build/WiseUIAppUnity/Package.appxmanifest` and modify the `<package>...</package>` and `<Capabilities>...</Capabilities>`  like this.
 
 ```xml 
@@ -101,7 +101,7 @@ Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes t
 
 `<DeviceCapability Name="backgroundSpatialPerception"/>` is only necessary if you use IMU sensor. 
 
-6. Save the changes. Open `WiseUIAppUnity.sln`. Change the build type to Release/Master-ARM64-Device(or Remote Machine). Build - Deploy.
+6. Save the changes. Open `Build/WiseUIAppUnity.sln`. Change the build type to Release/Master-ARM64-Device(or Remote Machine). Build - Deploy.
 
 
 
