@@ -9,13 +9,13 @@ ARRC-UVR Wise UI 통합 프로젝트
   - [WiseUIAppUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/WiseUIAppUnity) 
     - [HoloLens2Stream](https://github.com/IkbeomJeon/HoloLens2Stream)을 빌드하여 생성한  Plugin을 이용하여 HoloLens2의 센서 값들을 받아온 후 서버에 전송하고 결과를 Visualization하는 유니티 프로젝트.
 
+  - [HttpCommunicationTestUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/HttpCommunicationTestUnity)
+    - Http프로토콜을 이용해서 Sample Image 한장을 전송하고 처리된 결과를 수신받는 example.(아직 HoloLens2 입력으로 테스트 못함.)
+
   - [TCPServerPython](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/TCPServerPython)
     - 홀로렌즈2에서 전송한 데이터를 수신하고 출력하는 TCP 서버. 스크립트 실행 시 접속 대기 상태가 되며 클라이언트(홀로렌즈)가 접속하면 실시간으로 획득한 데이터를 출력함. 연결이 끊기면 다시 접속 대기 상태로 전환 됨.
-        
-  
-   
-  
-    
+
+ 
   
 - Modules/
 
