@@ -1,13 +1,18 @@
 # WiseUI Integration 
 ARRC-UVR Wise UI 통합 프로젝트
 
+
 ## Contents
 
 - Application/
   - [HoloLens2StreamTCPTestUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/HoloLens2StreamTCPTestUnity)
+    
     - HoloLens2Stream Plugin을 이용하여 HoloLens2의 센서 값들을 받아온 후 Visualization하고 TCP 서버에 전송하는 Unity 예제
     
-  
+    - (차후 각종 모듈을 여기에 통합 예정)
+    
+      
+    
   
 - Modules/
 
@@ -17,19 +22,87 @@ ARRC-UVR Wise UI 통합 프로젝트
   - [HoloLens2Stream](https://github.com/IkbeomJeon/HoloLens2Stream)
     - HoloLens2 Stream에 접근하여 각종 센서 값을 받아오는 모듈
 
+
+
 ## Setup
+
 - Cloning only applications
 ```
 git clone https://github.com/IkbeomJeon/WiseUI.git
 ```
+
+
 -  Cloning applications and all submodules
+
 ```
 git clone --recurse-submodules https://github.com/IkbeomJeon/WiseUI.git
 ```
 
-## Build
+
+
+## Compatibility
+
+- Unity 2020.3.21f1 (LTS)*
+- Visual Studio 2019
+
+\* To use it in Unity 2020.1 - 2021.1,
+
+
+
+Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes the only supported pipeline with different way of obtaining the Unity world coordiante frame. Other functions shouldn't be influenced.
+
+
+
+
+## Build 
+
+1. Open Application/[HoloLens2StreamTCPTestUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/HoloLens2StreamTCPTestUnity)  in Unity.
+2. Install XRSDK (Project Settings-XR Plugin Management-install, then tick "Windows Mixed Reality")
+3. In the Project tab, open `Scenes/HoloLens2 PV Camera Test.unity`.
+4. Select MixedRealityToolkit Gameobject in the Hierarchy. In the Inspector, change the mixed reality configuration profile to `New XRSDKConfigurationProfile` (or `DefaultXRSDKConfigurationProfile`).
+5. Go to Build Settings, switch target platform to UWP.
+6. Hopefully, there is no error in the console. Go to Build Settings, change Target Device to HoloLens, Architecture to ARM64. Build the Unity project in a new folder (e.g. App folder).
+7. After building the visual studio solution from Unity, go to `[Project name]/Package.appxmanifest` and modify the <package>...</package> and <Capabilities>...</Capabilities>  like this.
+
+```xml 
+<Package 
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" 
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" 
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2" 
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" 
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4" 
+  xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10" 
+  xmlns:mobile="http://schemas.microsoft.com/appx/manifest/mobile/windows10" 
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" 
+  IgnorableNamespaces="uap uap2 uap3 uap4 mp mobile iot rescap" 
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"> 
+```
+
+```xml
+  <Capabilities>
+    <rescap:Capability Name="perceptionSensorsExperimental" />
+    <Capability Name="internetClient" />
+    <Capability Name="internetClientServer" />
+    <Capability Name="privateNetworkClientServer" />
+    <uap2:Capability Name="spatialPerception" />
+    <DeviceCapability Name="backgroundSpatialPerception"/>
+    <DeviceCapability Name="webcam" />
+  </Capabilities>
+```
+
+`<DeviceCapability Name="backgroundSpatialPerception"/>` is only necessary if you use IMU sensor. 
+
+6. Save the changes. Open `[Project name].sln`. Change the build type to Release/Master-ARM64-Device(or Remote Machine). Build - Deploy.
+
+
 
 ## Acknowledgement
+
+To be updated.
+
+
+
+
 
 ## Lisense
 
