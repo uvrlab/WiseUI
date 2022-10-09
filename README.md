@@ -2,16 +2,23 @@
 ARRC-UVR Wise UI 통합 프로젝트
 
 
+
 ## Contents
 
 - Application/
   - [HoloLens2StreamTCPTestUnity](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/HoloLens2StreamTCPTestUnity)
-    
-    - HoloLens2Stream Plugin을 이용하여 HoloLens2의 센서 값들을 받아온 후 Visualization하고 TCP 서버에 전송하는 Unity 예제
-    
-    - (차후 각종 모듈을 여기에 통합 예정)
-    
+  
+    - [HoloLens2Stream](https://github.com/IkbeomJeon/HoloLens2Stream)을 빌드하여 생성한  Plugin을 이용하여 HoloLens2의 센서 값들을 받아온 후 Visualization하고 TCP 서버에 전송하는 Unity 예제
+  
       
+  
+    - [/TCPServerPython](https://github.com/IkbeomJeon/WiseUI/tree/master/Applications/HoloLens2StreamTCPTestUnity/TCPServerPython)
+  
+      - 홀로렌즈와 통신하는 TCP 서버. 실행 시 접속 대기 상태가 되며 클라이언트(홀로렌즈)가 접속하면 실시간으로 획득한 데이터를 출력함. 연결이 끊기면 다시 접속 대기 상태로 전환 됨.
+        
+  
+    - (차후 각종 모듈을 여기에 통합 예정)
+  
     
   
 - Modules/
@@ -98,7 +105,7 @@ Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes t
 
 ## Acknowledgement
 
-To be updated.
+- HoloLens2 Research Mode Stream 라이브러리는 [이 프로젝트](https://github.com/petergu684/HoloLens2-ResearchMode-Unity)를 참고하여 작성 됨.
 
 
 
