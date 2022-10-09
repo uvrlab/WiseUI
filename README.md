@@ -17,7 +17,6 @@ ARRC-UVR Wise UI 통합 프로젝트
 ## Setup
 ```
 git clone --recurse-submodules https://github.com/IkbeomJeon/WiseUI.git
-
 ```
 
 
