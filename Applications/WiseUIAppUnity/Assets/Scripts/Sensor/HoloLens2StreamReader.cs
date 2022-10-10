@@ -14,10 +14,16 @@ using HoloLens2Stream;
 public class HoloLens2StreamReader : MonoBehaviour
 {
     private int frameIdx = 0;
+
+#if ENABLE_WINMD_SUPPORT
+    DefaultStream holoLens2PVCameraStream;
+#else
     HoloLens2PVCameraStream holoLens2PVCameraStream;
+#endif
 
     public GameObject pvImagePlane = null;
     private Texture2D pvImageTexture = null;
+    private byte[] pvImageData = null;
     public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
     public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
 
@@ -44,7 +50,7 @@ public class HoloLens2StreamReader : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError("On client connect exception " + e);
+            Debug.LogError("On client connect exception " + e.Message);
             DebugText.Instance.lines["TCP Connection"] = "fail.";
         }
 
@@ -60,10 +66,23 @@ public class HoloLens2StreamReader : MonoBehaviour
 
         pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = pvImageTexture;
 
-        holoLens2PVCameraStream = new HoloLens2PVCameraStream();
-        holoLens2PVCameraStream.InitPVCamera(pvCameraType, textureFormat);
+        try
+        {
+#if ENABLE_WINMD_SUPPORT
+            holoLens2PVCameraStream = new DefaultStream();
+            _ = holoLens2PVCameraStream.InitializePVCamera(pvImageTexture.width);
+#else
+            holoLens2PVCameraStream = new HoloLens2PVCameraStream();
+            holoLens2PVCameraStream.InitializePVCamera(pvCameraType, textureFormat);
+#endif
+            DebugText.Instance.lines["Init PV camera"] = "ok.";
+        }
+        catch (Exception e)
+        {
+            DebugText.Instance.lines["Init PV camera"] = e.Message;
+        }
 
-        DebugText.Instance.lines["Init PV camera"] = "ok.";
+
 
     }
     
@@ -74,21 +93,46 @@ public class HoloLens2StreamReader : MonoBehaviour
     {
         try
         {
-           if(holoLens2PVCameraStream.DidUpdatedPVCamera())
+            float start_time = Time.time;
+#if ENABLE_WINMD_SUPPORT
+            byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
+            if (frameTexture.Length > 0)
             {
-                //float start_time = Time.time;
+                if (pvImageData == null)
+                {
+                    pvImageData = frameTexture;
+                    //DebugText.Instance.lines["frameTexture.Length"] = "null.";
+                }
+                else
+                {
+                    System.Buffer.BlockCopy(frameTexture, 0, pvImageData, 0, pvImageData.Length);
+                    
+                }
+                DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
+                pvImageTexture.LoadRawTextureData(pvImageData);
+                pvImageTexture.Apply();
+            }
+#else
+            if (holoLens2PVCameraStream.DidUpdatedPVCamera())
+            {
+                
                 byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
                 pvImageTexture.LoadRawTextureData(frameTexture);
                 pvImageTexture.Apply();
-                //Debug.LogFormat("Time to copy camera buffer : {0}", Time.time - start_time);
-
-                byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
-                socket.SendMessage(bData);
-                
+              
             }
+            float time_to_copy_buffer = Time.time - start_time;
+            DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
+#endif
+            start_time = Time.time;
+            byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
+            socket.SendMessage(bData);
+            float time_to_send = Time.time - start_time;
+            DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
         }
         catch (Exception e)
         {
+            DebugText.Instance.lines["GetPVCameraBuffer"] = e.Message;
             Debug.LogError(e.ToString());
         }
     }
@@ -165,7 +209,12 @@ public class HoloLens2StreamReader : MonoBehaviour
 
     private void OnDestroy()
     {
+#if ENABLE_WINMD_SUPPORT
+        _ = holoLens2PVCameraStream.StopPVCamera();
+        
+#else
         holoLens2PVCameraStream.StopPVCamera();
+#endif
 
         if (socket != null && socket.isConnected)
             socket.Disconnect();

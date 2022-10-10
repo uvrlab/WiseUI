@@ -9,7 +9,7 @@ public class HoloLens2PVCameraStream
     Texture2D targetTexture;
 
 
-    public void InitPVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
+    public void InitializePVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
     {
         
         foreach (var dev in WebCamTexture.devices)
