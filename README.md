@@ -25,8 +25,8 @@ ARRC-UVR Wise UI 통합 프로젝트
   - [HoloLens2Stream](https://github.com/IkbeomJeon/HoloLens2Stream)
     - HoloLens2 Stream에 접근하여 각종 센서 값을 받아오는 모듈
     
-  - [wjCho, HandTracker]()
-    - To be updated
+  - [WiseUI_Hand](https://gitlab.com/woojin.cho/wiseui_hand)
+    - HoloLens2에서 획득한 RGB이미지를 전송받아서 Hand Tracking을 처리하는 서버 모듈
 
   - [jwJeon, SLAM]()
     - To be updated
