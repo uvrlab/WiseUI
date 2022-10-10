@@ -34,6 +34,7 @@ public class HoloLens2StreamReader : MonoBehaviour
 
     void Start()
     {
+
         debugText = GameObject.Find("DebugText").GetComponent<Text>();
         socket = new TCPClient();
         try
@@ -43,9 +44,8 @@ public class HoloLens2StreamReader : MonoBehaviour
         }
         catch (Exception e)
         {
-            string text = "On client connect exception " + e;
-            Debug.LogError("TCP connection fail.");
-            debugText.text = text;
+            Debug.LogError("On client connect exception " + e);
+            debugText.text = "TCP connection fail.";
         }
 
 

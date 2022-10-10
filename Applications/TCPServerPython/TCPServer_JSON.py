@@ -58,12 +58,11 @@ def ReceiveLoop(sock, queue_data):
 
             if not recvData:
                 break
-
             # print('Data received from' + str(addr) + ' : ' + str(datetime.now()))
 
         except socket.error as msg:
             print('Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
-            pass
+            break
             # continue
 
 
@@ -146,14 +145,17 @@ def recvall(sock, n):
     return data
 
 def getDimension(imgFormat : ImageFormat):
-    if imgFormat == ImageFormat.BGRA or imgFormat == ImageFormat.ABGR or imgFormat == ImageFormat.RGBA:
+    if imgFormat == ImageFormat.RGBA or imgFormat == ImageFormat.BGRA \
+            or imgFormat == ImageFormat.ARGB or imgFormat == ImageFormat.Float32:
         return 4
-    elif imgFormat == ImageFormat.BGR or imgFormat == ImageFormat.RGB:
+    elif imgFormat == ImageFormat.RGB:
         return 3
     elif imgFormat == ImageFormat.U16:
         return 2
-    else: #u8
+    elif imgFormat == ImageFormat.U8:
         return 1
+    else:
+        raise(Exception("Invalid ImageFormat Error."))
 
 if __name__ == '__main__':
     if not os.path.isdir(save_folder):

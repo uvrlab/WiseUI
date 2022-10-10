@@ -11,9 +11,17 @@ public class HoloLens2PVCameraStream
 
     public void InitPVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
     {
-        var devices = WebCamTexture.devices;
+        
+        foreach (var dev in WebCamTexture.devices)
+        {
+            if (dev.availableResolutions != null)
+                DebugText.Instance.lines[dev.name] = dev.availableResolutions.Length.ToString();
+            else
+                DebugText.Instance.lines[dev.name] = "0";
+        }
+            
 
-        if(pVCameraType == PVCameraType.r640x360xf30)
+        if (pVCameraType == PVCameraType.r640x360xf30)
             webCamTexture = new WebCamTexture(WebCamTexture.devices.First<WebCamDevice>().name, 640, 360, 30);
         else if (pVCameraType == PVCameraType.r760x428xf30)
             webCamTexture = new WebCamTexture(WebCamTexture.devices.First<WebCamDevice>().name, 720, 428, 30);
