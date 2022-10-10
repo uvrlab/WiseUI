@@ -4,6 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+public enum ImageFormat
+{
+    INVALID = -1,
+    RGBA = 1,
+    BGRA = 2, //proper to numpy format.
+    ARGB = 3,
+    RGB = 4,
+    U16 = 5,
+    U8 = 6,
+    Float32 = 7
+
+}
+
 public enum DataType
 {
     PV = 1,
@@ -26,11 +39,12 @@ public class HL2StreamHeaderInfo
     public double timestamp = -1;
     public DataType dataType;
     public ImageCompression dataCompressionType = ImageCompression.None;
+    public ImageFormat imageFormat = ImageFormat.INVALID;
     public int imageQulaity = 75;
     public long data_length;
     public int width;
     public int height;
-    public int dim;
+    //public int dim;
 }
 
 

@@ -33,6 +33,16 @@ class ImageCompression:
     JPEG = 1
     PNG = 2
 
+class ImageFormat:
+    INVALID = -1
+    RGBA = 1
+    BGRA = 2 # proper to numpy format.
+    ARGB = 3
+    RGB = 4
+    U16 = 5
+    U8 = 6
+    Float32 = 7
+
 
 def ReceiveLoop(sock, queue_data):
     while True:
@@ -41,7 +51,7 @@ def ReceiveLoop(sock, queue_data):
             recvData = recv_msg(sock)
             eps = 0.0000001
             time_to_receive = time.time() - start_time
-            print('Time to receive data : {}, {} fps'.format(time_to_receive, 1/(time_to_receive + eps) + eps))
+            print('Time to receive data : {}, {} fps'.format(time_to_receive, 1/(time_to_receive + eps)))
 
             queue_data.put(recvData)
             queue_data.join()
@@ -94,7 +104,9 @@ def ProcessingData(header, data):
     if dataType == DataType.PV:
         width = header['width']
         height = header['height']
-        dim = header['dim']
+        imageFormat = header['imageFormat']
+
+        dim = getDimension(imageFormat)
 
         # if img_compression == ImageCompression.JPEG:
         # encode_param=[int(cv2.IMWRITE_JPEG_QUALITY), jpgQuality]
@@ -106,6 +118,7 @@ def ProcessingData(header, data):
         print(f'Time delay : {delay_time}, fps : {1 / (delay_time + eps)}')
 
         #cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
+        cv2.namedWindow("pvimage")
         cv2.imshow("pvimage", img_np)
         cv2.waitKey(1)
         # print('Image with ts ' + str(timestamp) + ' is saved')
@@ -132,6 +145,15 @@ def recvall(sock, n):
         data.extend(packet)
     return data
 
+def getDimension(imgFormat : ImageFormat):
+    if imgFormat == ImageFormat.BGRA or imgFormat == ImageFormat.ABGR or imgFormat == ImageFormat.RGBA:
+        return 4
+    elif imgFormat == ImageFormat.BGR or imgFormat == ImageFormat.RGB:
+        return 3
+    elif imgFormat == ImageFormat.U16:
+        return 2
+    else: #u8
+        return 1
 
 if __name__ == '__main__':
     if not os.path.isdir(save_folder):
