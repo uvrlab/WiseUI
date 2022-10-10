@@ -30,22 +30,22 @@ public class HoloLens2StreamReader : MonoBehaviour
 
 
     //Debug
-    public Text debugText;
+    //public Text debugText;
 
     void Start()
     {
 
-        debugText = GameObject.Find("DebugText").GetComponent<Text>();
+        //debugText = GameObject.Find("DebugText").GetComponent<Text>();
         socket = new TCPClient();
         try
         {
             socket.Connect(hostIPAddress, int.Parse(port));
-            debugText.text = "TCP Connection OK.";
+            DebugText.Instance.lines["TCP Connection"] = "ok.";
         }
         catch (Exception e)
         {
             Debug.LogError("On client connect exception " + e);
-            debugText.text = "TCP connection fail.";
+            DebugText.Instance.lines["TCP Connection"] = "fail.";
         }
 
 
@@ -63,8 +63,7 @@ public class HoloLens2StreamReader : MonoBehaviour
         holoLens2PVCameraStream = new HoloLens2PVCameraStream();
         holoLens2PVCameraStream.InitPVCamera(pvCameraType, textureFormat);
 
-
-        debugText.text = debugText.text += "\n  Init stream OK.";
+        DebugText.Instance.lines["Init PV camera"] = "ok.";
 
     }
     
