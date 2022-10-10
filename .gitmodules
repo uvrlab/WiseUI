@@ -4,3 +4,6 @@
 [submodule "Modules/ARRCObjectron"]
 	path = Modules/ARRCObjectron
 	url = git@gitlab.com:IkbeomJeon/ARRCObjectron.git
+[submodule "Modules/wiseui_hand"]
+	path = Modules/wiseui_hand
+	url = https://gitlab.com/woojin.cho/wiseui_hand.git
