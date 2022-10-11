@@ -162,9 +162,6 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: -1272873511925416830, guid: e2f99c8b86e2bca439b8ecb8013bca26, type: 2}
-  - {fileID: -8590894048874295367, guid: 6aca7ff8d216e9d4e9c9d173f9fa22af, type: 2}
-  - {fileID: -5764378457501432424, guid: 690deb73b8361a14bba5596d70ee1d6b, type: 2}
   - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -620,7 +617,8 @@ PlayerSettings:
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    14: 
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

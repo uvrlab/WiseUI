@@ -16,9 +16,9 @@ public class HoloLens2StreamReader : MonoBehaviour
     private int frameIdx = 0;
 
 #if ENABLE_WINMD_SUPPORT
-    DefaultStream holoLens2PVCameraStream;
+    DefaultStream pvCameraStream;
 #else
-    WebcamStream holoLens2PVCameraStream;
+    WebcamStream pvCameraStream;
 #endif
 
     public GameObject pvImagePlane = null;
@@ -68,11 +68,11 @@ public class HoloLens2StreamReader : MonoBehaviour
         try
         {
 #if ENABLE_WINMD_SUPPORT
-            holoLens2PVCameraStream = new DefaultStream();
-            _ = holoLens2PVCameraStream.InitializePVCamera(pvImageTexture.width);
+            pvCameraStream = new DefaultStream();
+            _ = pvCameraStream.InitializePVCamera(pvImageTexture.width);
 #else
-            holoLens2PVCameraStream = new WebcamStream();
-            holoLens2PVCameraStream.InitializePVCamera(pvCameraType, textureFormat);
+            pvCameraStream = new WebcamStream();
+            pvCameraStream.InitializePVCamera(pvCameraType, textureFormat);
 #endif
             DebugText.Instance.lines["Init PV camera"] = "ok.";
         }
@@ -81,11 +81,7 @@ public class HoloLens2StreamReader : MonoBehaviour
             DebugText.Instance.lines["Init PV camera"] = e.Message;
         }
 
-
-
     }
-    
-   
 
     // Update is called once per frame
     void Update()
@@ -94,7 +90,7 @@ public class HoloLens2StreamReader : MonoBehaviour
         {
             float start_time = Time.time;
 #if ENABLE_WINMD_SUPPORT
-            byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
+            byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
             if (frameTexture.Length > 0)
             {
                 DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
@@ -102,9 +98,9 @@ public class HoloLens2StreamReader : MonoBehaviour
                 pvImageTexture.Apply();
             }
 #else
-            if (holoLens2PVCameraStream.DidUpdatedPVCamera())
+            if (pvCameraStream.DidUpdatedPVCamera())
             {
-                byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
+                byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
                 pvImageTexture.LoadRawTextureData(frameTexture);
                 pvImageTexture.Apply();
               
@@ -197,11 +193,14 @@ public class HoloLens2StreamReader : MonoBehaviour
 
     private void OnDestroy()
     {
+        if(pvCameraStream !=null)
+        {
 #if ENABLE_WINMD_SUPPORT
-        _ = holoLens2PVCameraStream.StopPVCamera();
+            _ = pvCameraStream.StopPVCamera();
         
 #else
-        holoLens2PVCameraStream.StopPVCamera();
+            pvCameraStream.StopPVCamera();
+        }
 #endif
 
         if (socket != null && socket.isConnected)
