@@ -200,8 +200,9 @@ public class HoloLens2StreamReader : MonoBehaviour
         
 #else
             pvCameraStream.StopPVCamera();
-        }
 #endif
+        }
+
 
         if (socket != null && socket.isConnected)
             socket.Disconnect();
