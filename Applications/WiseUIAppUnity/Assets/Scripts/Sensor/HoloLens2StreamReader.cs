@@ -18,12 +18,11 @@ public class HoloLens2StreamReader : MonoBehaviour
 #if ENABLE_WINMD_SUPPORT
     DefaultStream holoLens2PVCameraStream;
 #else
-    HoloLens2PVCameraStream holoLens2PVCameraStream;
+    WebcamStream holoLens2PVCameraStream;
 #endif
 
     public GameObject pvImagePlane = null;
     private Texture2D pvImageTexture = null;
-    private byte[] pvImageData = null;
     public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
     public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
 
@@ -72,7 +71,7 @@ public class HoloLens2StreamReader : MonoBehaviour
             holoLens2PVCameraStream = new DefaultStream();
             _ = holoLens2PVCameraStream.InitializePVCamera(pvImageTexture.width);
 #else
-            holoLens2PVCameraStream = new HoloLens2PVCameraStream();
+            holoLens2PVCameraStream = new WebcamStream();
             holoLens2PVCameraStream.InitializePVCamera(pvCameraType, textureFormat);
 #endif
             DebugText.Instance.lines["Init PV camera"] = "ok.";
@@ -98,32 +97,21 @@ public class HoloLens2StreamReader : MonoBehaviour
             byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
             if (frameTexture.Length > 0)
             {
-                if (pvImageData == null)
-                {
-                    pvImageData = frameTexture;
-                    //DebugText.Instance.lines["frameTexture.Length"] = "null.";
-                }
-                else
-                {
-                    System.Buffer.BlockCopy(frameTexture, 0, pvImageData, 0, pvImageData.Length);
-                    
-                }
                 DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
-                pvImageTexture.LoadRawTextureData(pvImageData);
+                pvImageTexture.LoadRawTextureData(frameTexture);
                 pvImageTexture.Apply();
             }
 #else
             if (holoLens2PVCameraStream.DidUpdatedPVCamera())
             {
-                
                 byte[] frameTexture = holoLens2PVCameraStream.GetPVCameraBuffer();
                 pvImageTexture.LoadRawTextureData(frameTexture);
                 pvImageTexture.Apply();
               
             }
+#endif
             float time_to_copy_buffer = Time.time - start_time;
             DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
-#endif
             start_time = Time.time;
             byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
             socket.SendMessage(bData);

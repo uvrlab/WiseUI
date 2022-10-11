@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum PVCameraType { r640x360xf30 = 0, r760x428xf30 = 1, r1280x720xf30};
 
-public class HoloLens2PVCameraStream
+public class WebcamStream
 {
     WebCamTexture webCamTexture;
     Texture2D targetTexture;
