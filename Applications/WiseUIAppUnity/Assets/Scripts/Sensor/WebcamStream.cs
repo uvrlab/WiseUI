@@ -1,7 +1,7 @@
 using System.Linq;
 using UnityEngine;
 
-public enum PVCameraType { r640x360xf30 = 0, r760x428xf30 = 1, r1280x720xf30};
+public enum PVCameraType {r640x360xf30 = 0, r760x428xf30 = 1, r1280x720xf30 = 2};
 
 public class WebcamStream
 {
