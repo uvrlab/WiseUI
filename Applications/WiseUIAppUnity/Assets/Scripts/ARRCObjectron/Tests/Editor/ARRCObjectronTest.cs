@@ -45,6 +45,7 @@ public class ARRCObjectronTest
         //input.data.Upload(input_data, input.shape);
         CheckRange(input_data, -1, 1);
 
+        double start_time = EditorApplication.timeSinceStartup;
         var output_barrcuda = engine.Execute(input);
         var heatmap_barrcuda = output_barrcuda.PeekOutput("output");
         var offsetmap_barracuda = output_barrcuda.PeekOutput("550");
@@ -52,10 +53,12 @@ public class ARRCObjectronTest
         //heatmap_barrcuda = ChangeDimensionOrder(heatmap_barrcuda);
 
         float[] heatmap_data_barracua = heatmap_barrcuda.data.Download(heatmap_barrcuda.shape);
-
-
         float[] offsetmap_data_barracuda = offsetmap_barracuda.data.Download(offsetmap_barracuda.shape);
+        Debug.LogFormat("barracuda runtime : {0:F6}", EditorApplication.timeSinceStartup - start_time);
+        
+
         CheckRange(heatmap_data_barracua, 0, 1);
+        
 
         var ModeilFileFullPath = GetFirstFoundFilePath(Application.dataPath, modelFileName + ".onnx");
         IntPtr pModelPath = Marshal.StringToHGlobalAnsi(ModeilFileFullPath);
@@ -87,7 +90,7 @@ public class ARRCObjectronTest
             ReleaseTensorArray(output_tensors); //must be deleted manually.
             _DestroyModel();
         }
-
+        
 
         //Check outputs.
         Assert.True(heatmap_data_barracua.Length > 0 && heatmap_data_barracua.Length == heatmap_data_onnxruntime.Length);
@@ -120,10 +123,12 @@ public class ARRCObjectronTest
         var inputImage = LoadTexture2DAsset(imageFileName);
         var input = new Tensor(NormalizeInput(inputImage, Shader.Find("ML/NormalizeInput")), 3);
 
+        double start_time = EditorApplication.timeSinceStartup;
         engine.Execute(input);
         var output_barracuda = engine.PeekOutput();
         var res = output_barracuda.ArgMax()[0];
-
+        Debug.LogFormat("barracuda runtime : {0:F6}", EditorApplication.timeSinceStartup - start_time);
+        
         TextAsset labelsAsset = LoadTextAsset("class_desc");
         var labels = labelsAsset.text.Split('\n');
         var label = labels[res];
@@ -164,6 +169,7 @@ public class ARRCObjectronTest
         input.Dispose();
         engine.Dispose();
         Resources.UnloadUnusedAssets();
+        
     }
 
     [Test]
