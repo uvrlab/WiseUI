@@ -21,10 +21,13 @@ public class ARRCObjectronTest
     unsafe static extern _TENSOR_ARRAY _Eval(_TENSOR_ARRAY inputTensors);
 
     [DllImport("ARRCObjectronCore")]
-    static extern int ReleaseTensorArray(_TENSOR_ARRAY tensors);
+    static extern int _ReleaseTensorArray(_TENSOR_ARRAY tensors);
 
     [DllImport("ARRCObjectronCore")]
-    static extern void WriteHeatMapTensor(_TENSOR tensor, IntPtr writepath);
+    static extern void _WriteHeatMapTensor(_TENSOR tensor, IntPtr writepath);
+
+    [DllImport("ARRCObjectronCore")]
+    static extern void _VisTest(_TENSOR tensor, IntPtr writepath);
 
     [Test]
     public void AOInferenceTest_VirnectAll()
@@ -77,17 +80,17 @@ public class ARRCObjectronTest
             _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 30, 40, 1, heatmap_data_barracua);
             string writepath1 = "heatmap_by_barracuda";
             IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
-            WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1);
+            _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1);
             Marshal.FreeHGlobal(pWritePath1);
 
             string writepath2 = "heatmap_by_onnxruntime";
             IntPtr pWritePath2 = Marshal.StringToHGlobalAnsi(writepath2);
-            WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2);
+            _WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2);
             Marshal.FreeHGlobal(pWritePath2);
 
             heatmap_data_onnxruntime = output_tensors.tensor[0].DownloadData();
             offsetmap_data_onnxruntime = output_tensors.tensor[1].DownloadData();
-            ReleaseTensorArray(output_tensors); //must be deleted manually.
+            _ReleaseTensorArray(output_tensors); //must be deleted manually.
             _DestroyModel();
         }
         
@@ -157,7 +160,7 @@ public class ARRCObjectronTest
 
             data_onnxruntime = output_tensors.tensor[0].DownloadData();
           
-            ReleaseTensorArray(output_tensors); //must be deleted manually.
+            _ReleaseTensorArray(output_tensors); //must be deleted manually.
         }
         _DestroyModel();
 
@@ -219,7 +222,7 @@ public class ARRCObjectronTest
             data20_onnxruntime = output_tensors.tensor[0].DownloadData();
             data40_onnxruntime = output_tensors.tensor[1].DownloadData();
 
-            ReleaseTensorArray(output_tensors); //must be deleted manually.
+            _ReleaseTensorArray(output_tensors); //must be deleted manually.
         }
         //_DestroyModel();
 
@@ -278,17 +281,17 @@ public class ARRCObjectronTest
         //    _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
         //    string writepath1 = "heatmap_by_barracuda";
         //    IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
-        //    WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1);
+        //    _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1);
         //    Marshal.FreeHGlobal(pWritePath1);
 
         //    string writepath2 = "heatmap_by_onnxruntime";
         //    IntPtr pWritePath2 = Marshal.StringToHGlobalAnsi(writepath2);
-        //    WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2);
+        //    _WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2);
         //    Marshal.FreeHGlobal(pWritePath2);
 
         //    heatmap_data_onnxruntime = output_tensors.tensor[0].DownloadData();
         //    offsetmap_data_onnxruntime = output_tensors.tensor[1].DownloadData();
-        //    ReleaseTensorArray(output_tensors); //must be deleted manually.
+        //    _ReleaseTensorArray(output_tensors); //must be deleted manually.
         //    _DestroyModel();
         //}
 
