@@ -128,8 +128,8 @@ public class ARRCObjectronTest
 
         CheckRange(heatmap_data_barracua, 0, 1);
         CheckRange(heatmap_data_onnxruntime, 0, 1);
-        CheckAverage(heatmap_data_barracua, heatmap_data_onnxruntime, 0.00001f);
-        CheckAverage(offsetmap_data_barracuda, offsetmap_data_barracuda, 0.000f);
+        Check_Average_of_Residuals(heatmap_data_barracua, heatmap_data_onnxruntime, 0.00001f);
+        Check_Average_of_Residuals(offsetmap_data_barracuda, offsetmap_data_barracuda, 0.000f);
 
         input.Dispose();
         engine.Dispose();
@@ -191,7 +191,7 @@ public class ARRCObjectronTest
         //Check outputs.
         CheckRange(data_onnxruntime, 0, 1);
         CompareDistribution(data_barracuda, data_onnxruntime);
-        CheckAverage(data_barracuda, data_onnxruntime, 0.00001f);
+        Check_Average_of_Residuals(data_barracuda, data_onnxruntime, 0.00001f);
 
         //clean memory
         input.Dispose();
@@ -249,7 +249,7 @@ public class ARRCObjectronTest
         //Check outputs.
         //for (int i = 100; i < 100; i++)
         //    Debug.LogFormat("{0}, {1}", data20_barracuda[i], data20_onnxruntime[i]);
-        //CheckAverage(data20_barracuda, data20_onnxruntime, 3);
+        //Check_Average_of_Residuals(data20_barracuda, data20_onnxruntime, 5);
         CompareDistribution(data20_barracuda, data20_onnxruntime);
         CompareDistribution(data40_barracuda, data40_onnxruntime);
 
@@ -262,7 +262,7 @@ public class ARRCObjectronTest
     [Test]
     public void AOInferenceTest_MobilePoseShape()
     {
-        string modelFileName = "mp-chair";
+        string modelFileName = "object_detection_3d_chair_1stage";
         string imageFileName = "chair1";
 
         var nnModel = LoadNNModelAsset(modelFileName);
@@ -282,7 +282,14 @@ public class ARRCObjectronTest
         float[] heatmap_data_barracua = heatmap_barrcuda.data.Download(heatmap_barrcuda.shape);
         //float[] offsetmap_data_barracuda = offsetmap_barracuda.data.Download(offsetmap_barracuda.shape);
         CheckRange(heatmap_data_barracua, 0, 1);
-
+        {
+            _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
+            string writepath1 = "heatmap_by_barracuda";
+            IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
+            _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1, 0);
+            Marshal.FreeHGlobal(pWritePath1);
+        }
+        
         //var ModeilFileFullPath = GetFirstFoundFilePath(Application.dataPath, modelFileName + ".onnx");
         //IntPtr pModelPath = Marshal.StringToHGlobalAnsi(ModeilFileFullPath);
         //_LoadModel(pModelPath);
@@ -300,20 +307,20 @@ public class ARRCObjectronTest
         //    _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
         //    string writepath1 = "heatmap_by_barracuda";
         //    IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
-        //    _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1);
+        //    _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1, 0);
         //    Marshal.FreeHGlobal(pWritePath1);
 
         //    string writepath2 = "heatmap_by_onnxruntime";
         //    IntPtr pWritePath2 = Marshal.StringToHGlobalAnsi(writepath2);
-        //    _WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2);
+        //    _WriteHeatMapTensor(output_tensors.tensor[0], pWritePath2, 0);
         //    Marshal.FreeHGlobal(pWritePath2);
 
         //    heatmap_data_onnxruntime = output_tensors.tensor[0].DownloadData();
         //    offsetmap_data_onnxruntime = output_tensors.tensor[1].DownloadData();
         //    _ReleaseTensorArray(output_tensors); //must be deleted manually.
-        //    _DestroyModel();
+           
         //}
-
+        //_DestroyModel();
 
         ////Check outputs.
         //Assert.True(heatmap_data_barracua.Length > 0 && heatmap_data_barracua.Length == heatmap_data_onnxruntime.Length);
@@ -321,8 +328,8 @@ public class ARRCObjectronTest
 
         //CheckRange(heatmap_data_barracua, 0, 1);
         //CheckRange(heatmap_data_onnxruntime, 0, 1);
-        //CheckAverage(heatmap_data_barracua, heatmap_data_onnxruntime, 0.03f); //평균 3% 차이 이내 (Mahalanobis를 이용해 측정하는 것이 더 좋음.)
-        //CheckAverage(offsetmap_data_barracuda, offsetmap_data_barracuda, 0.0f);
+        //Check_Average_of_Residuals(heatmap_data_barracua, heatmap_data_onnxruntime, 0.03f); //평균 3% 차이 이내 (Mahalanobis를 이용해 측정하는 것이 더 좋음.)
+        //Check_Average_of_Residuals(offsetmap_data_barracuda, offsetmap_data_barracuda, 0.0f);
 
         input.Dispose();
         engine.Dispose();
@@ -335,7 +342,7 @@ public class ARRCObjectronTest
         var validCount = input_data.Count(i => (i >= minValueInclude && i <= maxValueInclude));
         Assert.AreEqual(input_data.Length, validCount);
     }
-    void CheckAverage(float[] arr1, float[] arr2, float threshold)
+    void Check_Average_of_Residuals(float[] arr1, float[] arr2, float threshold)
     {
         var residuals = arr1.Zip(arr2, (d1, d2) => Math.Abs(d1 - d2));
         float avg = residuals.Average();
