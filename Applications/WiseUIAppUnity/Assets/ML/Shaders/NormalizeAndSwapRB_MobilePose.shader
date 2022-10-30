@@ -1,4 +1,4 @@
-﻿Shader "ML/NormalizeInput_MobilePose"
+﻿Shader "ML/NormalizeAndSwapRB_MobilePose"
 {
     Properties
     {
@@ -42,10 +42,17 @@
             float4 frag(v2f i) : SV_Target
             {
                 float4 col = tex2D(_MainTex, i.uv);
-                
-                col.r = (col.r * 2) - 1;
+				
+                float tmp = (col.r * 2) - 1;
+                col.r = (col.b * 2) - 1;
                 col.g = (col.g * 2) - 1;
-                col.b = (col.b * 2) - 1;
+                col.b = tmp;
+
+				/*float tmp = col.r;
+				col.r = col.b;
+				col.g = col.g;
+				col.b = tmp;*/
+					
                 return col;
             }
             ENDCG
