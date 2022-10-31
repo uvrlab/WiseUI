@@ -11,72 +11,43 @@ using UnityEngine.UI;
 using HoloLens2Stream;
 #endif
 
-
-public class HoloLens2StreamReader : MonoBehaviour
+#define ENABLE_WINMD_SUPPORT 
+public class HoloLens2PVCameraReader : BaseSensorReader
 {
-    private int frameIdx = 0;
+    int frameID = -1;
+    public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
+    public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
+    protected Thread capture_thread;
+    Texture2D latestTexture;
 
 #if ENABLE_WINMD_SUPPORT
     DefaultStream pvCameraStream;
-#else
-    WebcamStream pvCameraStream;
 #endif
-    
-    public GameObject pvImagePlane = null;
-    
-    public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
-    public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
-
-    //critical section ( shared with object_detector.)
-    private Texture2D pvImageTexture = null;
-    //
-    bool isNewTexture = false;
-    private object lockObject = new object();
-
-    // TCP-IP
-    public ImageCompression imageCompression = ImageCompression.None;
-    public int jpgQuality = 75;
-
-  
 
     //Debug
     //public Text debugText;
 
     void Start()
     {
-        //debugText = GameObject.Find("DebugText").GetComponent<Text>();
-        //socket = new TCPClient();
-        //try
-        //{
-        //    socket.Connect(hostIPAddress, int.Parse(port));
-        //    DebugText.Instance.lines["TCP Connection"] = "ok.";
-        //}
-        //catch (Exception e)
-        //{
-        //    Debug.LogError("On client connect exception " + e.Message);
-        //    DebugText.Instance.lines["TCP Connection"] = "fail.";
-        //}
 
+    }
 
-        pvImagePlane = GameObject.Find("PVImagePlane");
-
+    public void InitializePVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
+    {
         if (pvCameraType == PVCameraType.r640x360xf30)
-            pvImageTexture = new Texture2D(640, 360, textureFormat, false);
+            latestTexture = new Texture2D(640, 360, textureFormat, false);
         else if (pvCameraType == PVCameraType.r760x428xf30)
-            pvImageTexture = new Texture2D(760, 428, textureFormat, false);
+            latestTexture = new Texture2D(760, 428, textureFormat, false);
+        //else if (pvCameraType == PVCameraType.r1280x720xf30)
+        //    latestTexture = new Texture2D(1280, 720, textureFormat, false);
         else
-            pvImageTexture = new Texture2D(1280, 720, textureFormat, false);
-
-        pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = pvImageTexture;
+            throw (new Exception("Invalid resolution."));
 
         try
         {
 #if ENABLE_WINMD_SUPPORT
             pvCameraStream = new DefaultStream();
-            _ = pvCameraStream.InitializePVCamera(pvImageTexture.width);
-#else
-            pvCameraStream = new WebcamStream();
-            pvCameraStream.InitializePVCamera(pvCameraType, textureFormat);
+            _ = pvCameraStream.InitializePVCamera(latestTexture.width);
 #endif
             DebugText.Instance.lines["Init PV camera"] = "ok.";
         }
@@ -85,50 +56,79 @@ public class HoloLens2StreamReader : MonoBehaviour
             DebugText.Instance.lines["Init PV camera"] = e.Message;
         }
 
-
+        frameID = -1;
     }
 
 
-    // Update is called once per frame
+    public bool IsNewFrame
+    {
+        get
+        {
+            return pvCameraStream.IsNewFrame();
+        }
+    }
+    public Texture2D  GrabCurrentTexture()
+    {
+        if(IsNewFrame)
+        {
+            frameID++;
+            byte[] frameBuffer = pvCameraStream.GetPVCameraBuffer();
+            DebugText.Instance.lines["frameTexture.Length"] = frameBuffer.Length.ToString();
+            latestTexture.LoadRawTextureData(frameBuffer);
+            latestTexture.Apply();
+        }
+        return latestTexture;
+    }
+
+    public void StopCapture()
+    {
+#if ENABLE_WINMD_SUPPORT
+        if (pvCameraStream != null)
+        {
+            _ = pvCameraStream.StopPVCamera();
+        }
+#endif
+    }
+
     void Update()
     {
-        try
-        {
-            float start_time = Time.time;
-            lock(lockObject)
-            {
-#if ENABLE_WINMD_SUPPORT
-                if(pvCameraStream.IsNewFrame())
-                {
-                    byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
-                    if (frameTexture.Length > 0)
-                    {
-                        DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
-                        pvImageTexture.LoadRawTextureData(frameTexture);
-                        pvImageTexture.Apply();
-                    }
-                }
-#else
-                if (pvCameraStream.IsNewFrame())
-                {
-                    pvCameraStream.CopyCurrentTexture(ref pvImageTexture);
-                }
-#endif
-            }
+//        try
+//        {
+//            float start_time = Time.time;
+//            lock(lockObject)
+//            {
+//#if ENABLE_WINMD_SUPPORT
+//                if(pvCameraStream.IsNewFrame())
+//                {
+//                    byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
+//                    if (frameTexture.Length > 0)
+//                    {
+//                        DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
+//                        pvImageTexture.LoadRawTextureData(frameTexture);
+//                        pvImageTexture.Apply();
+//                    }
+//                }
+//#else
+//                if (pvCameraStream.IsNewFrame())
+//                {
+//                    pvCameraStream.CopyCurrentTexture(ref pvImageTexture);
+//                }
+//#endif
+//            }
 
-            float time_to_copy_buffer = Time.time - start_time;
-            DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
-            start_time = Time.time;
-            byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
-            //socket.SendMessage(bData);
-            float time_to_send = Time.time - start_time;
-            DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
-        }
-        catch (Exception e)
-        {
-            DebugText.Instance.lines["GetPVCameraBuffer"] = e.Message;
-            Debug.LogError(e.ToString());
-        }
+//            float time_to_copy_buffer = Time.time - start_time;
+//            DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
+//            start_time = Time.time;
+//            byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
+//            //socket.SendMessage(bData);
+//            float time_to_send = Time.time - start_time;
+//            DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
+//        }
+//        catch (Exception e)
+//        {
+//            DebugText.Instance.lines["GetPVCameraBuffer"] = e.Message;
+//            Debug.LogError(e.ToString());
+//        }
     }
 
     ImageFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)

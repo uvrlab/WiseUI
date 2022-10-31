@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,29 +12,41 @@ using HoloLens2Stream;
 #endif
 
 
-public class HoloLens2StreamReaderSingleton : MonoBehaviour
+public class HoloLens2StreamReader2 : MonoBehaviour
 {
+    private int frameIdx = 0;
+
 #if ENABLE_WINMD_SUPPORT
     DefaultStream pvCameraStream;
-#else
-    //WebcamStream pvCameraStream;
 #endif
+
     public GameObject pvImagePlane = null;
 
-    public int frameIdx = 0;
-    public bool isCapturing_PV;
+    public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
+    public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
 
-    Texture2D pvImageTexture = null;
-    TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
-    ImageCompression imageCompression = ImageCompression.None;
-    int jpgQuality = 75;
+    //critical section ( shared with object_detector.)
+    private Texture2D pvImageTexture = null;
+    //
+    bool isNewTexture = false;
+    private object lockObject = new object();
 
-    public void InitializePVCamera(PVCameraType cameraType)
+
+    void Start()
     {
-        StopPVCamera();
+        //debugText = GameObject.Find("DebugText").GetComponent<Text>();
+        //socket = new TCPClient();
+        //try
+        //{
+        //    socket.Connect(hostIPAddress, int.Parse(port));
+        //    DebugText.Instance.lines["TCP Connection"] = "ok.";
+        //}
+        //catch (Exception e)
+        //{
+        //    Debug.LogError("On client connect exception " + e.Message);
+        //    DebugText.Instance.lines["TCP Connection"] = "fail.";
+        //}
 
-        frameIdx = 0;
-        var pvCameraType = ConfigurationManager.Instance.pvCameraType;
 
         pvImagePlane = GameObject.Find("PVImagePlane");
 
@@ -41,13 +54,10 @@ public class HoloLens2StreamReaderSingleton : MonoBehaviour
             pvImageTexture = new Texture2D(640, 360, textureFormat, false);
         else if (pvCameraType == PVCameraType.r760x428xf30)
             pvImageTexture = new Texture2D(760, 428, textureFormat, false);
-        else if (pvCameraType == PVCameraType.r1280x720xf30)
-            pvImageTexture = new Texture2D(1280, 720, textureFormat, false);
         else
-            throw (new Exception("Invalid resolution."));
+            pvImageTexture = new Texture2D(1280, 720, textureFormat, false);
 
         pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = pvImageTexture;
-
 
         try
         {
@@ -55,83 +65,59 @@ public class HoloLens2StreamReaderSingleton : MonoBehaviour
             pvCameraStream = new DefaultStream();
             _ = pvCameraStream.InitializePVCamera(pvImageTexture.width);
 #else
-            //pvCameraStream = new WebcamStream();
-            //pvCameraStream.InitializePVCamera(pvCameraType, textureFormat);
+            pvCameraStream = new WebcamStream();
+            pvCameraStream.InitializePVCamera(pvCameraType, textureFormat);
 #endif
-            //DebugText.Instance.lines["Init PV camera"] = "ok.";
-            isCapturing_PV = true;
+            DebugText.Instance.lines["Init PV camera"] = "ok.";
         }
         catch (Exception e)
         {
-            //DebugText.Instance.lines["Init PV camera"] = e.Message;
-            throw e;
+            DebugText.Instance.lines["Init PV camera"] = e.Message;
         }
 
-    }
-    public void StopPVCamera()
-    {
-//        if (pvCameraStream != null)
-//        {
-//#if ENABLE_WINMD_SUPPORT
-//            _ = pvCameraStream.StopPVCamera();
-        
-//#else
-//            pvCameraStream.StopPVCamera();
-//#endif
-//        }
-        isCapturing_PV = false;
+
     }
 
+
+    // Update is called once per frame
     void Update()
     {
-        if(isCapturing_PV)
+        try
         {
             float start_time = Time.time;
-            try
+            lock (lockObject)
             {
-
 #if ENABLE_WINMD_SUPPORT
-            byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
-            if (frameTexture.Length > 0)
-            {
-                DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
-                pvImageTexture.LoadRawTextureData(frameTexture);
-                pvImageTexture.Apply();
-            }
-#else
-                //if (pvCameraStream.DidUpdatedPVCamera())
+                if(pvCameraStream.IsNewFrame())
                 {
-                   // byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
-                    //pvImageTexture.LoadRawTextureData(frameTexture);
-                    //pvImageTexture.Apply();
-
+                    byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
+                    if (frameTexture.Length > 0)
+                    {
+                        DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
+                        pvImageTexture.LoadRawTextureData(frameTexture);
+                        pvImageTexture.Apply();
+                    }
+                }
+#else
+                if (pvCameraStream.IsNewFrame())
+                {
+                    pvCameraStream.CopyCurrentTexture(ref pvImageTexture);
                 }
 #endif
             }
-            catch (Exception e)
-            {
-                DebugText.Instance.lines["GetPVCameraBuffer"] = e.Message;
-                Debug.LogError(e.ToString());
-            }
 
             float time_to_copy_buffer = Time.time - start_time;
-            //DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
-
-            if (TCPClientSingleton.Instance.isConnected)
-            {
-                start_time = Time.time;
-                try
-                {
-                    byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
-                    TCPClientSingleton.Instance.SendMessage(bData);
-                    float time_to_send = Time.time - start_time;
-                    //DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.ToString());
-                }
-            }
+            DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
+            start_time = Time.time;
+            byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
+            //socket.SendMessage(bData);
+            float time_to_send = Time.time - start_time;
+            DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
+        }
+        catch (Exception e)
+        {
+            DebugText.Instance.lines["GetPVCameraBuffer"] = e.Message;
+            Debug.LogError(e.ToString());
         }
     }
 
@@ -196,29 +182,31 @@ public class HoloLens2StreamReaderSingleton : MonoBehaviour
 
         return bTotal;
     }
+    public void StopSensorsEvent()
+    {
+
+    }
+    private void OnApplicationFocus(bool focus)
+    {
+        if (!focus) StopSensorsEvent();
+    }
 
     private void OnDestroy()
     {
-        StopPVCamera();
-    }
-
-    static HoloLens2StreamReaderSingleton _instance;
-    public static HoloLens2StreamReaderSingleton Instance
-    {
-        get
+        if (pvCameraStream != null)
         {
-            if (_instance == null)
-            {
-                GameObject obj = GameObject.Find("HoloLens2StreamReader");
-                if (obj == null)
-                {
-                    obj = new GameObject("HoloLens2StreamReader");
-                    _instance = obj.AddComponent<HoloLens2StreamReaderSingleton>();
-                    DontDestroyOnLoad(obj);
-                }
-            }
-
-            return _instance;
+#if ENABLE_WINMD_SUPPORT
+            _ = pvCameraStream.StopPVCamera();
+        
+#else
+            pvCameraStream.StopPVCamera();
+#endif
         }
+
+
+        //if (socket != null && socket.isConnected)
+        //    socket.Disconnect();
     }
+
+
 }
