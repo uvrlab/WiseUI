@@ -52,7 +52,6 @@ public class UIManager : MonoBehaviour
         pvToggleCollection = transform.Find("Pannel/PVSensorGroup").GetComponent<InteractableToggleCollection>();
         startCaptureButton = transform.Find("Pannel/StartCapture").GetComponent<Interactable>();
         startCaptureButton.OnClick.AddListener(OnStartCaptureButtonClick);
-
         
     }
   
