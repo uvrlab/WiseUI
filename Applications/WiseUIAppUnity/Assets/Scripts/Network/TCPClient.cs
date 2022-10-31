@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
 
-public class TCPClient
+public class TCPClient : MonoBehaviour
 {
     protected int bufSize = 8 * 1024;
     protected TcpClient socket;

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 
 
-public class BaseDetector
+public class BaseDetector : MonoBehaviour
 {
     protected IWorker engine;
 

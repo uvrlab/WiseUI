@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,38 +21,41 @@ public class HoloLens2StreamReader : MonoBehaviour
 #else
     WebcamStream pvCameraStream;
 #endif
-
+    
     public GameObject pvImagePlane = null;
-    private Texture2D pvImageTexture = null;
+    
     public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
     public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
 
+    //critical section ( shared with object_detector.)
+    private Texture2D pvImageTexture = null;
+    //
+    bool isNewTexture = false;
+    private object lockObject = new object();
+
     // TCP-IP
-    [SerializeField]
-    string hostIPAddress, port;
     public ImageCompression imageCompression = ImageCompression.None;
     public int jpgQuality = 75;
-    TCPClient socket;
 
+  
 
     //Debug
     //public Text debugText;
 
     void Start()
     {
-
         //debugText = GameObject.Find("DebugText").GetComponent<Text>();
-        socket = new TCPClient();
-        try
-        {
-            socket.Connect(hostIPAddress, int.Parse(port));
-            DebugText.Instance.lines["TCP Connection"] = "ok.";
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("On client connect exception " + e.Message);
-            DebugText.Instance.lines["TCP Connection"] = "fail.";
-        }
+        //socket = new TCPClient();
+        //try
+        //{
+        //    socket.Connect(hostIPAddress, int.Parse(port));
+        //    DebugText.Instance.lines["TCP Connection"] = "ok.";
+        //}
+        //catch (Exception e)
+        //{
+        //    Debug.LogError("On client connect exception " + e.Message);
+        //    DebugText.Instance.lines["TCP Connection"] = "fail.";
+        //}
 
 
         pvImagePlane = GameObject.Find("PVImagePlane");
@@ -81,7 +85,9 @@ public class HoloLens2StreamReader : MonoBehaviour
             DebugText.Instance.lines["Init PV camera"] = e.Message;
         }
 
+
     }
+
 
     // Update is called once per frame
     void Update()
@@ -89,28 +95,32 @@ public class HoloLens2StreamReader : MonoBehaviour
         try
         {
             float start_time = Time.time;
+            lock(lockObject)
+            {
 #if ENABLE_WINMD_SUPPORT
-            byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
-            if (frameTexture.Length > 0)
-            {
-                DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
-                pvImageTexture.LoadRawTextureData(frameTexture);
-                pvImageTexture.Apply();
-            }
+                if(pvCameraStream.IsNewFrame())
+                {
+                    byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
+                    if (frameTexture.Length > 0)
+                    {
+                        DebugText.Instance.lines["frameTexture.Length"] = frameTexture.Length.ToString();
+                        pvImageTexture.LoadRawTextureData(frameTexture);
+                        pvImageTexture.Apply();
+                    }
+                }
 #else
-            if (pvCameraStream.DidUpdatedPVCamera())
-            {
-                byte[] frameTexture = pvCameraStream.GetPVCameraBuffer();
-                pvImageTexture.LoadRawTextureData(frameTexture);
-                pvImageTexture.Apply();
-              
-            }
+                if (pvCameraStream.IsNewFrame())
+                {
+                    pvCameraStream.CopyCurrentTexture(ref pvImageTexture);
+                }
 #endif
+            }
+
             float time_to_copy_buffer = Time.time - start_time;
             DebugText.Instance.lines["Time_to_copy"] = time_to_copy_buffer.ToString();
             start_time = Time.time;
             byte[] bData = EEncodeImageData(frameIdx++, pvImageTexture, imageCompression, jpgQuality);
-            socket.SendMessage(bData);
+            //socket.SendMessage(bData);
             float time_to_send = Time.time - start_time;
             DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
         }
@@ -204,7 +214,9 @@ public class HoloLens2StreamReader : MonoBehaviour
         }
 
 
-        if (socket != null && socket.isConnected)
-            socket.Disconnect();
+        //if (socket != null && socket.isConnected)
+        //    socket.Disconnect();
     }
+
+   
 }
