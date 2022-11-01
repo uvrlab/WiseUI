@@ -1,0 +1,94 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using OpenCvSharp;
+
+using System.Threading;
+using System;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+
+public class WebcamOpenCVStream
+{
+    VideoCapture capture;
+    Thread thread;
+    byte[] latestBuffer;
+    bool isNewFrame;
+    readonly object lock_object = new object();
+    
+    public void InitializePVCamera(int width, int height)
+    {
+        capture = new VideoCapture(0);
+        capture.FrameWidth = width;
+        capture.FrameHeight = height;
+
+        thread = new Thread(CaptureLoop);
+        thread.Start();
+        
+    }
+    public void StopCamera()
+    {
+        if (thread != null)
+        {
+            thread.Interrupt();
+            thread = null;
+        }
+        
+    }
+    public bool IsNewFrame()
+    {
+        lock (lock_object)
+        {
+            return isNewFrame;
+        }
+        
+    }
+    void CaptureLoop()
+    {
+        try
+        {
+            while (true)
+            {
+                using (Mat frame = new Mat())
+                {
+                    capture.Read(frame);
+                    //Cv2.ImShow("test", frame);
+                    //Cv2.WaitKey(1);
+
+                    if (frame.Empty())
+                        continue;
+
+                    lock (lock_object)
+                    {
+                        isNewFrame = true;
+                        var bufferSize = frame.Cols * frame.Rows * frame.ElemSize();
+                        if (latestBuffer == null || latestBuffer.Length != bufferSize)
+                        {
+                            latestBuffer = new byte[bufferSize];
+                        }
+                        Marshal.Copy(frame.Data, latestBuffer, 0, bufferSize);
+                    }
+                }
+                Thread.Sleep(1);
+            }
+        }
+        catch (ThreadInterruptedException e)
+        {
+            Debug.Log("thread interrupted.");
+        }
+    }
+    public byte[] GetPVCameraBuffer()
+    {
+        byte[] output;
+        lock (lock_object)
+        {
+            isNewFrame = false;
+            output = new byte[latestBuffer.Length];
+            Array.Copy(latestBuffer, output, output.Length);
+        }
+        return output;
+    }
+}
+
+
+

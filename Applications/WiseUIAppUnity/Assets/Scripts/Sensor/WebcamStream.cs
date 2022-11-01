@@ -1,73 +1,58 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using OpenCvSharp;
-using System.Threading;
-using System;
 
-public class WebcamStream 
+
+public class WebcamStream
 {
-    VideoCapture capture;
-    Thread thread;
-    byte[] latestBuffer;
-    bool isNewFrame;
-    object lock_object;
-    
-    void InitializeCamera(int width, int height)
-    {
-        capture = new VideoCapture(0);
-        capture.FrameWidth = width;
-        capture.FrameHeight = height;
+    WebCamTexture webCamTexture;
+    Texture2D targetTexture;
 
-        thread = new Thread(CaptureLoop);
-        thread.Start();
-    }
-    void StopCamera()
-    {
-        thread.Interrupt();
-    }
-    void CaptureLoop()
-    {
-        try
-        {
-            while (true)
-            {
-                using (Mat frame = new Mat())
-                {
-                    capture.Read(frame);
-                    Cv2.ImShow("test", frame);
-                    Cv2.WaitKey(1);
 
-                    if (frame.Empty())
-                        continue;
-
-                    lock (lock_object)
-                    {
-                        latestBuffer = frame.ToBytes();
-                        isNewFrame = true;
-                    }
-                }
-                Thread.Sleep(1);
-            }
-        }
-        catch (ThreadInterruptedException e)
-        {
-            Debug.Log("thread interrupted.");
-        }
-    }
-    byte[] GetPVCameraBuffer()
+    public void InitializePVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
     {
-        lock (lock_object)
+        
+        foreach (var dev in WebCamTexture.devices)
         {
-            if (isNewFrame)
-            {
-                isNewFrame = false;
-                return latestBuffer;
-            }
+            if (dev.availableResolutions != null)
+                DebugText.Instance.lines[dev.name] = dev.availableResolutions.Length.ToString();
             else
-                return null;
+                DebugText.Instance.lines[dev.name] = "0";
         }
+            
+
+        if (pVCameraType == PVCameraType.r640x360xf30)
+            webCamTexture = new WebCamTexture(WebCamTexture.devices.First<WebCamDevice>().name, 640, 360, 30);
+        else if (pVCameraType == PVCameraType.r760x428xf30)
+            webCamTexture = new WebCamTexture(WebCamTexture.devices.First<WebCamDevice>().name, 720, 428, 30);
+        else
+            webCamTexture = new WebCamTexture(WebCamTexture.devices.First<WebCamDevice>().name, 1280, 720, 30);
+
+        webCamTexture.Play();
+        targetTexture = new Texture2D(webCamTexture.width, webCamTexture.height, textureFormat, false);
+
     }
+
+    public void StopPVCamera()
+    {
+        webCamTexture.Stop();
+    }
+
+    public bool DidUpdatedPVCamera()
+    {
+        return webCamTexture.didUpdateThisFrame;
+    }
+
+    public byte[] GetPVCameraBuffer(/*compression*/)
+    {
+     
+        Color[] cdata = webCamTexture.GetPixels();
+        targetTexture.SetPixels(cdata);
+        targetTexture.Apply();
+        
+
+        byte[] buffer = targetTexture.GetRawTextureData();
+        return targetTexture.GetRawTextureData();
+        
+    }
+
 }
-
-
