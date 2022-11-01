@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using SensorStream;
 
 public class UIManager : MonoBehaviour
 {
