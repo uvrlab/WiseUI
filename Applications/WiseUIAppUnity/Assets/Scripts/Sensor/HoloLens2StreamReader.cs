@@ -11,7 +11,7 @@ using UnityEngine.UI;
 using HoloLens2Stream;
 #endif
 
-#define ENABLE_WINMD_SUPPORT 
+//#define ENABLE_WINMD_SUPPORT 
 public class HoloLens2PVCameraReader : BaseSensorReader
 {
     int frameID = -1;
@@ -62,14 +62,21 @@ public class HoloLens2PVCameraReader : BaseSensorReader
 
     public bool IsNewFrame
     {
+
         get
         {
+#if ENABLE_WINMD_SUPPORT
             return pvCameraStream.IsNewFrame();
+#else
+            return false;
+#endif
         }
+
     }
     public Texture2D  GrabCurrentTexture()
     {
-        if(IsNewFrame)
+#if ENABLE_WINMD_SUPPORT
+        if (IsNewFrame)
         {
             frameID++;
             byte[] frameBuffer = pvCameraStream.GetPVCameraBuffer();
@@ -77,6 +84,7 @@ public class HoloLens2PVCameraReader : BaseSensorReader
             latestTexture.LoadRawTextureData(frameBuffer);
             latestTexture.Apply();
         }
+#endif
         return latestTexture;
     }
 
@@ -203,20 +211,17 @@ public class HoloLens2PVCameraReader : BaseSensorReader
 
     private void OnDestroy()
     {
+#if ENABLE_WINMD_SUPPORT
         if(pvCameraStream !=null)
         {
-#if ENABLE_WINMD_SUPPORT
+
             _ = pvCameraStream.StopPVCamera();
         
-#else
-            pvCameraStream.StopPVCamera();
-#endif
+
         }
-
-
+#endif
+    }
         //if (socket != null && socket.isConnected)
         //    socket.Disconnect();
-    }
 
-   
 }

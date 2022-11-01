@@ -11,7 +11,8 @@ public class WebcamReader : BaseSensorReader
     WebCamTexture webCamTexture;
     Coroutine handler;
     Texture2D latestTexture;
-
+    bool isNewFrame;
+    
     private void Start()
     {
         InitializePVCamera(pvCameraType, textureFormat);
@@ -75,7 +76,7 @@ public class WebcamReader : BaseSensorReader
         }
     }
 
-    public override bool IsNewFrame()
+    public bool IsNewFrame()
     {
         //lock (lockObject)
         {

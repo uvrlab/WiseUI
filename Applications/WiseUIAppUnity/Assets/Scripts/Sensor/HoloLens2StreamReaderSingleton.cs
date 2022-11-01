@@ -41,8 +41,8 @@ public class HoloLens2StreamReaderSingleton : MonoBehaviour
             pvImageTexture = new Texture2D(640, 360, textureFormat, false);
         else if (pvCameraType == PVCameraType.r760x428xf30)
             pvImageTexture = new Texture2D(760, 428, textureFormat, false);
-        else if (pvCameraType == PVCameraType.r1280x720xf30)
-            pvImageTexture = new Texture2D(1280, 720, textureFormat, false);
+        //else if (pvCameraType == PVCameraType.r1280x720xf30)
+        //    pvImageTexture = new Texture2D(1280, 720, textureFormat, false);
         else
             throw (new Exception("Invalid resolution."));
 
