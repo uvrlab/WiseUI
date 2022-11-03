@@ -61,6 +61,8 @@ namespace SensorStream
                     using (Mat frame = new Mat())
                     {
                         capture.Read(frame);
+                        //change bgr to rgb.
+                        Cv2.CvtColor(frame, frame, ColorConversionCodes.BGR2RGB);
 
                         if (frame.Empty())
                             continue;
