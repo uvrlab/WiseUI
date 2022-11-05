@@ -1,4 +1,4 @@
-﻿#define USE_OPENCV
+﻿//#define USE_OPENCV
 
 using System;
 using System.Collections;
@@ -78,15 +78,15 @@ namespace SensorStream
 #if ENABLE_WINMD_SUPPORT
             pvCameraStream = new DefaultStream();
             latestTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
-            _ = pvCameraStream.InitializePVCamera(latestTexture.width);
+            _ = pvCameraStream.StartPVCamera(latestTexture.width);
 #elif USE_OPENCV
             pvCameraStream = new WebcamOpenCVStream();
             latestTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
-            pvCameraStream.InitializePVCamera(width, height);
+            pvCameraStream.StartPVCamera(width, height);
 #else
                 pvCameraStream = new WebcamStream();
                 latestTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
-                pvCameraStream.InitializePVCamera(pVCameraType, TextureFormat.BGRA32);
+                pvCameraStream.StartPVCamera(pVCameraType, TextureFormat.BGRA32);
 #endif
                 DebugText.Instance.lines["Init PV camera"] = "ok.";
             }

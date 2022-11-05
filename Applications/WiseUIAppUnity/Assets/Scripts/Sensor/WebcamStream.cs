@@ -9,7 +9,7 @@ namespace SensorStream
         Texture2D targetTexture;
 
 
-        public void InitializePVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
+        public void StartPVCamera(PVCameraType pVCameraType, TextureFormat textureFormat)
         {
 
             foreach (var dev in WebCamTexture.devices)

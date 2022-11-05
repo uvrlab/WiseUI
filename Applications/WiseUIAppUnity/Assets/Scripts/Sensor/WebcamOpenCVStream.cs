@@ -1,4 +1,4 @@
-#define USE_OPENCV
+//#define USE_OPENCV
 namespace SensorStream
 {
 
@@ -21,7 +21,7 @@ namespace SensorStream
         bool isNewFrame;
         readonly object lock_object = new object();
 
-        public void InitializePVCamera(int width, int height)
+        public void StartPVCamera(int width, int height)
         {
             capture = new VideoCapture(0);
             capture.FrameWidth = width;

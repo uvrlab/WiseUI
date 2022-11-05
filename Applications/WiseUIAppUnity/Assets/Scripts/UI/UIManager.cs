@@ -107,14 +107,14 @@ public class UIManager : MonoBehaviour
         {
             if (!startCaptureButton.IsToggled)
             {
-                HoloLens2StreamReaderSingleton.Instance.StopPVCamera();
+                //HoloLens2StreamReaderSingleton.Instance.StopPVCamera();
                 images.SetActive(false);
                 return;
             }
       
             int idx = pvToggleCollection.CurrentIndex;
             images.SetActive(true);
-            HoloLens2StreamReaderSingleton.Instance.InitializePVCamera((PVCameraType)idx);
+            //HoloLens2StreamReaderSingleton.Instance.InitializePVCamera((PVCameraType)idx);
             
         }
         catch(System.Exception e)

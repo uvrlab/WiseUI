@@ -26,7 +26,7 @@ public class ARRCObjectronTest
     static extern int _ReleaseTensorArray(_TENSOR_ARRAY tensors);
 
     [DllImport("ARRCObjectronCore")]
-    static extern void _WriteHeatMapTensor(_TENSOR tensor, IntPtr writepath, int waitMilliSec);
+    static extern void _WriteHeatMapTensor(_TENSOR tensor, int resizeX, int resizeY, IntPtr writepath, int waitMilliSec);
 
     [DllImport("ARRCObjectronCore")]
     static extern void _VisTest(_TENSOR tensor, IntPtr writepath, int waitMilliSec);
@@ -286,7 +286,7 @@ public class ARRCObjectronTest
             _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
             string writepath1 = "heatmap_by_barracuda";
             IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
-            _WriteHeatMapTensor(output_tensor_heatmap_barracuda, pWritePath1, 0);
+            _WriteHeatMapTensor(output_tensor_heatmap_barracuda, 480, 640, pWritePath1, 0);
             Marshal.FreeHGlobal(pWritePath1);
         }
         
