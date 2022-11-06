@@ -3,22 +3,11 @@ using System.Collections.Generic;
 using Unity.Barracuda;
 using UnityEngine;
 
-public class ARRCObjectronPoseDetector : MonoBehaviour
+public class MobilePoseBaseRunner : BaseRunner
 {
-    protected IWorker engine;
-    public enum ModelType { MobilePoseBase_virnect, MobilePoseShape_chair, MobilePoseShape_shose };
+    public MobilePoseBaseRunner(IWorker engine) : base(engine){}
 
-    public NNModel[] models;
-
-    public void LoadModel(ModelType type)
-    {
-        DisposeModel();
-        var nnModel = models[(int)type];
-        var model = ModelLoader.Load(nnModel);
-        engine = WorkerFactory.CreateWorker(model, WorkerFactory.Device.GPU);
-    }
-
-    public void Run(Texture2D input_image)
+    public override void Run(Texture2D input_image)
     {
         var input_tensor = new Tensor(input_image, 3);
         var image = input_image;
@@ -37,13 +26,5 @@ public class ARRCObjectronPoseDetector : MonoBehaviour
         input.Dispose();
         Resources.UnloadUnusedAssets();
     }
-    void DisposeModel()
-    {
-        if (engine != null)
-            engine.Dispose();
-    }
-    void OnDestroy()
-    {
-        DisposeModel();
-    }
 }
+

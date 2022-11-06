@@ -8,14 +8,14 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using SensorStream;
 using static UnityEngine.Rendering.VirtualTexturing.Debugging;
-using static ARRCObjectronPoseDetector;
+using static ARRCObjectronDetector;
 
 public class UIManager : MonoBehaviour
 {
     // Modules
     public HoloLens2PVCameraReader pvCameraReader;
     public TCPClient_Image tcpClient;
-    public ARRCObjectronPoseDetector objectDetector;
+    public ARRCObjectronDetector objectDetector;
 
     public Interactable confButton;
 
@@ -51,7 +51,7 @@ public class UIManager : MonoBehaviour
     {
         pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
         tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient_Image>();
-        objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronPoseDetector>();
+        objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronDetector>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();
         confButton.OnClick.AddListener(OnConfigurationButtonClick);
@@ -182,6 +182,8 @@ public class UIManager : MonoBehaviour
             detectedImagePlane.SetActive(true);
             int idx = detectionToggles.CurrentIndex;
             detectionUpdateHandle = StartCoroutine(UpdateDetection());
+
+
             objectDetector.LoadModel((ModelType)idx);
             stateMessage.text = string.Format("Load Model OK.");
         }
