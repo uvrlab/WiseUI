@@ -5,15 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/HoloLens2 PV Camera Test.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: Assets/Samples/Mixed Reality Toolkit Examples/2.8.2/Experimental - MixedRealityKeyboard/Scenes/MixedRealityKeyboardExample.unity
-    guid: b21a91f417fdc7b41b531772ff092fcb
+  - enabled: 1
+    path: Assets/Scenes/main.unity
+    guid: ed4f380b3fcf04244a480d3dc7b92503
   m_configObjects:
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 690deb73b8361a14bba5596d70ee1d6b, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 6aca7ff8d216e9d4e9c9d173f9fa22af, type: 2}

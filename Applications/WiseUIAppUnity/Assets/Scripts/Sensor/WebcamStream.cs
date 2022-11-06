@@ -40,7 +40,7 @@ namespace SensorStream
             }
         }
 
-        public void StopCamera()
+        public void StopPVCamera()
         {
             webCamTexture.Stop();
         }

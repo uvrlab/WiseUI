@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public class ARRCObjectron
+namespace ARRCObjectron
 {
     public unsafe struct _TENSOR_ARRAY
     {

@@ -3,10 +3,17 @@ using System.Collections.Generic;
 using Unity.Barracuda;
 using UnityEngine;
 
-public class MobilePoseBaseDetector : BaseDetector
+public class ARRCObjectronPoseDetector : BaseDetector
 {
-    public MobilePoseBaseDetector(NNModel nnModel, WorkerFactory.Device device) : base(nnModel, device) { }
-    public void Inference(Texture2D input_image)
+    public enum ModelType { MobilePoseBase_virnect, MobilePoseShape_chair, MobilePoseShape_shose };
+    public ARRCObjectronPoseDetector(NNModel nnModel, WorkerFactory.Device device) : base(nnModel, device) { }
+    
+    public void LoadModel(ModelType type)
+    {
+        
+    }
+
+    public void Run(Texture2D input_image)
     {
         var input_tensor = new Tensor(input_image, 3);
         var image = input_image;

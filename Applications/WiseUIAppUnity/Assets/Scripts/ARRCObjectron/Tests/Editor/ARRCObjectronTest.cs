@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
-using static ARRCObjectron;
+using ARRCObjectron;
 using static Unity.Burst.Intrinsics.X86;
 
 public class ARRCObjectronTest

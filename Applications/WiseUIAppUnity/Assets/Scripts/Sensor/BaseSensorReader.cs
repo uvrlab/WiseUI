@@ -18,7 +18,7 @@ namespace SensorStream
 
 
         public virtual void GrabCurrentTexture(ref Texture2D dest) { }
-        public virtual void StopCapture() { }
+        public virtual void StopPVCamera() { }
 
     }
 

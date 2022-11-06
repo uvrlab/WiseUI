@@ -7,33 +7,45 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using SensorStream;
+using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 
 public class UIManager : MonoBehaviour
 {
-    //
+    // Modules
+    public HoloLens2PVCameraReader pvCameraReader;
+    public TCPClient tcpClient;
+    
     public Interactable confButton;
 
-    // Title
+    // Title UI
     public TextMeshPro stateMessage;
     public Interactable closeButton;
 
 
-    // TCP
+    // TCP UI
     public Interactable connectButton;
     public MRTKTMPInputField hostIPField, portField;
 
-    
-    //Capture
+
+    //Capture UI
     public Interactable startCaptureButton;
     public InteractableToggleCollection pvToggleCollection;
+    
+    //Camera Image planes
     public GameObject images;
+    public GameObject pvImagePlane;
+    Coroutine imagePlaneUpdateHandle;
+
 
     private void Awake()
     {
+        pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
+        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient>();
+        
         confButton = transform.Find("Setting").GetComponent<Interactable>();
         confButton.OnClick.AddListener(OnConfigurationButtonClick);
         images = transform.Find("Images").gameObject;
-        images.SetActive(false);
+        pvImagePlane = transform.Find("Images/PVImagePlane").gameObject;
 
         //transform.Find("Pannel").gameObject.SetActive(false);
 
@@ -55,7 +67,11 @@ public class UIManager : MonoBehaviour
         startCaptureButton.OnClick.AddListener(OnStartCaptureButtonClick);
         
     }
-  
+    private void Start()
+    {
+        images.SetActive(false);
+    }
+
     void OnConfigurationButtonClick()
     {
         ConfigurationManager.Instance.Load();
@@ -63,6 +79,7 @@ public class UIManager : MonoBehaviour
         portField.text = ConfigurationManager.Instance.port.ToString();
         pvToggleCollection.SetSelection((int)ConfigurationManager.Instance.pvCameraType);
     }
+    
     void CloseButtonClick()
     {
         string ip = hostIPField.text;
@@ -79,7 +96,7 @@ public class UIManager : MonoBehaviour
 
         if (!connectButton.IsToggled)
         {
-            TCPClientSingleton.Instance.Disconnect();
+            tcpClient.Disconnect();
             stateMessage.text = string.Format("Success to disconnect");
             return;
         }
@@ -89,7 +106,7 @@ public class UIManager : MonoBehaviour
             string ip = hostIPField.text;
             int port = int.Parse(portField.text);
 
-            TCPClientSingleton.Instance.Connect(ip, port);
+            tcpClient.Connect(ip, port);
             stateMessage.color = Color.white;
             stateMessage.text = string.Format("Success to connect : {0}:{1}", ip, port);
         }
@@ -107,15 +124,21 @@ public class UIManager : MonoBehaviour
         {
             if (!startCaptureButton.IsToggled)
             {
-                //HoloLens2StreamReaderSingleton.Instance.StopPVCamera();
+                pvCameraReader.StopPVCamera();
                 images.SetActive(false);
+                
+                if (imagePlaneUpdateHandle != null)
+                    StopCoroutine(imagePlaneUpdateHandle);
+                
                 return;
             }
       
             int idx = pvToggleCollection.CurrentIndex;
             images.SetActive(true);
-            //HoloLens2StreamReaderSingleton.Instance.InitializePVCamera((PVCameraType)idx);
+            pvCameraReader.StartPVCamera((PVCameraType)idx);
             
+            imagePlaneUpdateHandle = StartCoroutine(UpdateImagePlaneTexutre());
+
         }
         catch(System.Exception e)
         {
@@ -125,4 +148,16 @@ public class UIManager : MonoBehaviour
         }
 
     }
+
+    IEnumerator UpdateImagePlaneTexutre()
+    {
+        while (true)
+        {
+            if (pvCameraReader.IsNewFrame)
+                pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = pvCameraReader.GrabCurrentTexture();
+
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
 }

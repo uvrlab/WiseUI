@@ -7,10 +7,7 @@ using UnityEngine;
 
 public class TCPClient : MonoBehaviour
 {
-    protected int bufSize = 8 * 1024;
     protected TcpClient socket;
-    protected EndPoint epFrom;// = new IPEndPoint(IPAddress.Any, 0);
-
 
     public void Connect(string serverIP, int serverPort)
     {
@@ -27,7 +24,7 @@ public class TCPClient : MonoBehaviour
             return socket.Connected;
         }
     }
-    
+
     /// Send message to server using socket connection.     
     public void SendMessage(byte[] buffer)
     {
@@ -51,24 +48,10 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    public virtual void ReceieveCallBack(IAsyncResult aResult) 
-    { 
+    public void ReceieveCallBack(IAsyncResult aResult)
+    {
 
     }
-
-    //protected void SendData(RequestType requestType, ClientType clientType, TransformData transformData)
-    //{
-    //    DataPackage dataPackage = new DataPackage
-    //    {
-    //        requestType = requestType,
-    //        clientType = clientType,
-    //        data = transformData
-    //    };
-    //    string textToSend = JsonUtility.ToJson(dataPackage);
-    //    byte[] data = Encoding.ASCII.GetBytes(textToSend);
-    //    socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
-    //    //Debug.Log("Sent: " + textToSend);
-    //}
 
     public void Disconnect()
     {
@@ -80,6 +63,10 @@ public class TCPClient : MonoBehaviour
             socket.Close();
             socket = null;
         }
+    }
+    private void OnDestroy()
+    {
+        Disconnect();
     }
 
 }

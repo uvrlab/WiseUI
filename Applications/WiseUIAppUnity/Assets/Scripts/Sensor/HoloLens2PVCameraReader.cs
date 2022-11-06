@@ -30,6 +30,8 @@ namespace SensorStream
         protected Thread capture_thread;
         Texture2D latestTexture;
 
+        
+        Coroutine handle;
 #if ENABLE_WINMD_SUPPORT
     DefaultStream pvCameraStream;
 #elif USE_OPENCV
@@ -38,23 +40,11 @@ namespace SensorStream
     WebcamStream pvCameraStream;
 #endif
 
-        //Debug
-        //public Text debugText;
-
-        void Start()
+   
+        public void StartPVCamera(PVCameraType pVCameraType)
         {
-            InitializePVCamera(pvCameraType);
-            GameObject.Find("PVImagePlane").GetComponent<MeshRenderer>().material.mainTexture = latestTexture;
-
-        }
-        void Update()
-        {
-            if (IsNewFrame)
-                GrabCurrentTexture();
-        }
-
-        public void InitializePVCamera(PVCameraType pVCameraType)
-        {
+            frameID = -1;
+            
             int width, height;
             if (pvCameraType == PVCameraType.r640x360xf30)
             {
@@ -73,16 +63,18 @@ namespace SensorStream
 
             //else if (pvCameraType == PVCameraType.r1280x720xf30)
             //    latestTexture = new Texture2D(1280, 720, textureFormat, false);
+            
+            DebugText.Instance.lines["Init PV camera"] = "preparing..";
             try
             {
 #if ENABLE_WINMD_SUPPORT
-            pvCameraStream = new DefaultStream();
-            latestTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
-            _ = pvCameraStream.StartPVCamera(latestTexture.width);
+                pvCameraStream = new DefaultStream();
+                latestTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
+                _ = pvCameraStream.StartPVCamera(width);
 #elif USE_OPENCV
-            pvCameraStream = new WebcamOpenCVStream();
-            latestTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
-            pvCameraStream.StartPVCamera(width, height);
+                pvCameraStream = new WebcamOpenCVStream();
+                latestTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
+                pvCameraStream.StartPVCamera(width, height);
 #else
                 pvCameraStream = new WebcamStream();
                 latestTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
@@ -94,10 +86,7 @@ namespace SensorStream
             {
                 DebugText.Instance.lines["Init PV camera"] = e.Message;
             }
-
-            frameID = -1;
         }
-
 
         public bool IsNewFrame
         {
@@ -107,6 +96,7 @@ namespace SensorStream
             }
 
         }
+       
         public Texture2D GrabCurrentTexture()
         {
             frameID++;
@@ -118,15 +108,16 @@ namespace SensorStream
             return latestTexture;
         }
 
-        public override void StopCapture()
+        public override void StopPVCamera()
         {
+       
 
             if (pvCameraStream != null)
             {
 #if ENABLE_WINMD_SUPPORT
             _ = pvCameraStream.StopPVCamera();
 #else
-                pvCameraStream.StopCamera();
+                pvCameraStream.StopPVCamera();
 #endif
             }
         }
@@ -248,12 +239,13 @@ namespace SensorStream
         private void OnDestroy()
         {
 
-            StopCapture();
+            StopPVCamera();
 
             //if (socket != null && socket.isConnected)
             //    socket.Disconnect();
         }
 
+     
     }
 }
 

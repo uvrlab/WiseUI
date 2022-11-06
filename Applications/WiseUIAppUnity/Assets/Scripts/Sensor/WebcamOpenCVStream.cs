@@ -31,7 +31,7 @@ namespace SensorStream
             thread.Start();
 
         }
-        public void StopCamera()
+        public void StopPVCamera()
         {
             if (thread != null)
             {
