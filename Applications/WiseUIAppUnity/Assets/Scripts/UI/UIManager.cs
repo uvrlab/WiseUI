@@ -206,7 +206,12 @@ public class UIManager : MonoBehaviour
                 
                 if(connectButton.IsToggled)
                     tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
-                
+
+                if (startDetectionButton.IsToggled)
+                {
+                    objectDetector.Run(latestTexture);
+                }
+                    
                 //tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
                 //float time_to_send = Time.time - start_time;
                 //DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
