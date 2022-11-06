@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
 {
     // Modules
     public HoloLens2PVCameraReader pvCameraReader;
-    public TCPClient tcpClient;
+    public TCPClient_Image tcpClient;
     
     public Interactable confButton;
 
@@ -35,12 +35,13 @@ public class UIManager : MonoBehaviour
     public GameObject images;
     public GameObject pvImagePlane;
     Coroutine imagePlaneUpdateHandle;
+    Coroutine sendImageDataHandle;
 
 
     private void Awake()
     {
         pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
-        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient>();
+        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient_Image>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();
         confButton.OnClick.AddListener(OnConfigurationButtonClick);
@@ -136,8 +137,7 @@ public class UIManager : MonoBehaviour
             int idx = pvToggleCollection.CurrentIndex;
             images.SetActive(true);
             pvCameraReader.StartPVCamera((PVCameraType)idx);
-            
-            imagePlaneUpdateHandle = StartCoroutine(UpdateImagePlaneTexutre());
+            imagePlaneUpdateHandle = StartCoroutine(UpdateCameraTexutre());
 
         }
         catch(System.Exception e)
@@ -149,15 +149,27 @@ public class UIManager : MonoBehaviour
 
     }
 
-    IEnumerator UpdateImagePlaneTexutre()
+    IEnumerator UpdateCameraTexutre()
     {
         while (true)
         {
             if (pvCameraReader.IsNewFrame)
-                pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = pvCameraReader.GrabCurrentTexture();
-
+            {
+                pvCameraReader.UpdateCameraTexture();
+                Texture2D latestTexture = pvCameraReader.GetCurrentTexture();
+                pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = latestTexture;
+                
+                if(connectButton.IsToggled)
+                    tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
+                
+                //tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
+                //float time_to_send = Time.time - start_time;
+                //DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
+            }
+            
             yield return new WaitForEndOfFrame();
         }
     }
-
+  
 }
+

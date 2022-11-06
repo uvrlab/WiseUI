@@ -19,32 +19,35 @@ namespace SensorStream
     //#define ENABLE_WINMD_SUPPORT 
     public class HoloLens2PVCameraReader : BaseSensorReader
     {
-        [SerializeField]
-        public int frameID = -1;
-
+       
+        public int FrameID
+        {
+            get { return frameID; }
+            set { frameID = value; }
+        }
         [SerializeField]
         public PVCameraType pvCameraType = PVCameraType.r640x360xf30;
 
         [SerializeField]
         public TextureFormat textureFormat = TextureFormat.BGRA32; //proper to numpy data format.
-        protected Thread capture_thread;
-        Texture2D latestTexture;
-
         
-        Coroutine handle;
+        Texture2D latestTexture;
+        
+        [SerializeField]
+        int frameID;
 #if ENABLE_WINMD_SUPPORT
     DefaultStream pvCameraStream;
 #elif USE_OPENCV
     WebcamOpenCVStream pvCameraStream;
 #else
-    WebcamStream pvCameraStream;
+        WebcamStream pvCameraStream;
 #endif
 
-   
+
         public void StartPVCamera(PVCameraType pVCameraType)
         {
             frameID = -1;
-            
+
             int width, height;
             if (pvCameraType == PVCameraType.r640x360xf30)
             {
@@ -63,7 +66,7 @@ namespace SensorStream
 
             //else if (pvCameraType == PVCameraType.r1280x720xf30)
             //    latestTexture = new Texture2D(1280, 720, textureFormat, false);
-            
+
             DebugText.Instance.lines["Init PV camera"] = "preparing..";
             try
             {
@@ -96,21 +99,29 @@ namespace SensorStream
             }
 
         }
-       
-        public Texture2D GrabCurrentTexture()
+
+        public void UpdateCameraTexture()
         {
             frameID++;
             byte[] frameBuffer = pvCameraStream.GetPVCameraBuffer();
             DebugText.Instance.lines["frameTexture.Length"] = frameBuffer.Length.ToString();
             latestTexture.LoadRawTextureData(frameBuffer);
             latestTexture.Apply();
-
+        }
+        
+        public Texture2D GetCurrentTexture()
+        {
+            //만약 
+            if(frameID == -1)
+            {
+                UpdateCameraTexture();
+            }
             return latestTexture;
         }
 
         public override void StopPVCamera()
         {
-       
+
 
             if (pvCameraStream != null)
             {
@@ -163,67 +174,6 @@ namespace SensorStream
         //        }
         //    }
 
-        ImageFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)
-        {
-            switch (textureFormat)
-            {
-                case TextureFormat.RGBA32:
-                    return ImageFormat.RGBA;
-                case TextureFormat.BGRA32:
-                    return ImageFormat.BGRA;
-                case TextureFormat.ARGB32:
-                    return ImageFormat.ARGB;
-                case TextureFormat.RGB24:
-                    return ImageFormat.RGB;
-            }
-            return ImageFormat.INVALID;
-        }
-
-        byte[] EEncodeImageData(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
-        {
-            var now = DateTime.Now.ToLocalTime();
-            var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
-
-            var header = new HL2StreamHeaderInfo();
-
-            header.frameID = frameID;
-            header.width = texture.width;
-            header.height = texture.height;
-            header.dataType = DataType.PV;
-            header.imageFormat = ConvertTextureFormat2ImageFormat(texture.format);
-            header.timestamp = span.TotalSeconds;
-            header.dataCompressionType = comp;
-            header.imageQulaity = jpgQuality;
-
-            byte[] bImage = null;
-
-            if (comp == ImageCompression.None)
-                bImage = texture.GetRawTextureData();
-
-            if (comp == ImageCompression.JPEG)
-                bImage = texture.EncodeToJPG(jpgQuality);
-
-            header.data_length = bImage.Length;
-
-            string sHeader = JsonUtility.ToJson(header);
-            byte[] bHeader = Encoding.ASCII.GetBytes(sHeader);
-            byte[] bHeaderSize = BitConverter.GetBytes(bHeader.Length);
-
-            int contentSize = 4 + bHeader.Length + bImage.Length;
-            byte[] bContentSizeData = BitConverter.GetBytes(contentSize);
-
-            int totalSize = 4 + contentSize;
-            byte[] bTotal = new byte[totalSize];
-
-            System.Buffer.BlockCopy(bContentSizeData, 0, bTotal, 0, 4);
-            System.Buffer.BlockCopy(bHeaderSize, 0, bTotal, 4, 4);
-            System.Buffer.BlockCopy(bHeader, 0, bTotal, 4 + 4, bHeader.Length);
-            System.Buffer.BlockCopy(bImage, 0, bTotal, 4 + 4 + bHeader.Length, bImage.Length);
-
-            Debug.LogFormat("Header data size : {0}, Image data size : {1}, Total data size : {2}", bHeader.Length, bImage.Length, totalSize);
-
-            return bTotal;
-        }
         public void StopSensorsEvent()
         {
             if (pvCameraStream != null)
@@ -245,8 +195,7 @@ namespace SensorStream
             //    socket.Disconnect();
         }
 
-     
+
     }
 }
 
-    
