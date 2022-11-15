@@ -85,29 +85,40 @@ public class UIManager : MonoBehaviour
     }
     private void Start()
     {
+
+        LoadUIContents();
         //images.SetActive(false);
         pvImagePlane.SetActive(false);
         detectedImagePlane.SetActive(false);
     }
-
-    void OnConfigurationButtonClick()
+    void LoadUIContents()
     {
         ConfigurationManager.Instance.Load();
         hostIPField.text = ConfigurationManager.Instance.hostIP;
         portField.text = ConfigurationManager.Instance.port.ToString();
         pvCamToggles.SetSelection((int)ConfigurationManager.Instance.pvCameraType);
     }
-    
-    void CloseButtonClick()
+    void SaveUIContents()
     {
         string ip = hostIPField.text;
         int port = int.Parse(portField.text);
         PVCameraType pVCameraType = (PVCameraType)pvCamToggles.CurrentIndex;
         ConfigurationManager.Instance.Save(ip, port, pVCameraType);
         Debug.Log(string.Format("{0}, {1},{2}", ip, port, pVCameraType.ToString()));
-
     }
-
+    void OnConfigurationButtonClick()
+    {
+        LoadUIContents();
+    }
+    
+    void CloseButtonClick()
+    {
+        SaveUIContents();
+    }
+    private void OnDestroy()
+    {
+        SaveUIContents();
+    }
     void ConnectButtonClick()
     {
         Debug.Log(hostIPField.text);
