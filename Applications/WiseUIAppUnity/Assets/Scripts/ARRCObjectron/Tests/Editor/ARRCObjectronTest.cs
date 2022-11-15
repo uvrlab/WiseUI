@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using ARRCObjectron;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
-using ARRCObjectron;
+using static ARRCObjectronHelper;
 using static Unity.Burst.Intrinsics.X86;
 
 public class ARRCObjectronTest
@@ -52,7 +53,7 @@ public class ARRCObjectronTest
         // Texture2D의 format이 BGRAHalf인 경우 RGBAHalf로 자동 변경된다.
         // 따라서, RGB의 순서를 바꾸기 위해서는 Shader를 이용해서 처리해야 한다.
 
-        var input = new Tensor(PrepareTextureForInput(inputImage, Shader.Find("ML/NormalizeAndSwapRB_MobilePose")), 3);
+        var input = new Tensor(ARRCObjectronHelper.PrepareTextureForInput(inputImage, Shader.Find("ML/NormalizeAndSwapRB_MobilePose")), 3);
         //var input = new Tensor(1, 480, 640, 3);
         float[] input_data = input.data.Download(input.shape);
         //SaveTexture(inputImage, "./"+imageFileName + "_input.png");
@@ -272,6 +273,10 @@ public class ARRCObjectronTest
         var inputImage = LoadTexture2DAsset(imageFileName);
         var input = new Tensor(PrepareTextureForInput(inputImage, Shader.Find("ML/NormalizeAndSwapRB_MobilePose")), 3);
 
+        //var preMat = LoadMaterialAsset("UnlitTexture");
+        //var postMat = LoadMaterialAsset("MobilePoseNormalize");
+        //var input = new Tensor(PrepareTextureForInput(inputImage, preMat, postMat), 3);
+
         float[] input_data = input.data.Download(input.shape);
         CheckRange(input_data, -1, 1);
 
@@ -396,21 +401,7 @@ public class ARRCObjectronTest
 
         return result;
     }
-    Texture PrepareTextureForInput(Texture2D src, Shader shader)
-    {
-        Material norm_material = new Material(shader);
-        //Debug.Log(preprocessMaterial.shader.name);
-
-        var targetRT = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGBHalf);
-        RenderTexture.active = targetRT;
-        Graphics.Blit(src, targetRT, norm_material);
-        
-        var result = new Texture2D(targetRT.width, targetRT.height, TextureFormat.RGBAHalf, false);
-        result.ReadPixels(new Rect(0, 0, targetRT.width, targetRT.height), 0, 0);
-        result.Apply();
-        RenderTexture.active = null;
-        return result;
-    }
+ 
     void SaveTexture(Texture2D texture, string path)
     {
         byte[] bytes = texture.EncodeToPNG();
@@ -456,6 +447,17 @@ public class ARRCObjectronTest
         var texture =
             AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(allCandidates[0]), typeof(Texture2D)) as
             Texture2D;
+
+        return texture;
+    }
+    public Material LoadMaterialAsset(string fileName)
+    {
+        string[] allCandidates = AssetDatabase.FindAssets(fileName);
+        Assert.True(allCandidates.Length > 0);
+
+        var texture =
+            AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(allCandidates[0]), typeof(Material)) as
+            Material;
 
         return texture;
     }

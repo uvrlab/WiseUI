@@ -15,7 +15,8 @@ public class ARRCObjectronDetector : MonoBehaviour
     {
         DisposeModel();
         var model = ModelLoader.Load(nnModels[(int)modelType]);
-        engine = WorkerFactory.CreateWorker(model, WorkerFactory.Device.GPU);
+        engine = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, model, false);
+        //engine = WorkerFactory.CreateWorker(model, WorkerFactory.Device.GPU);
 
         switch(modelType)
         {
@@ -28,7 +29,7 @@ public class ARRCObjectronDetector : MonoBehaviour
                 break;
         }
     }
-    void Run(Texture2D inputTexture)
+    public void Run(Texture2D inputTexture)
     {
         runner.Run(inputTexture);
     }
@@ -41,4 +42,5 @@ public class ARRCObjectronDetector : MonoBehaviour
     {
         DisposeModel();
     }
+    
 }
