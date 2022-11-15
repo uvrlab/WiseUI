@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 {
     // Modules
     public HoloLens2PVCameraReader pvCameraReader;
-    public TCPClient_Image tcpClient;
+    public TCPClient_WiseUI tcpClient;
     public ARRCObjectronDetector objectDetector;
 
     public Interactable confButton;
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
-        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient_Image>();
+        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient_WiseUI>();
         objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronDetector>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();

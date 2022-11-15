@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-public class TCPClient_Image : TCPClient
+public class TCPClient_WiseUI : TCPClient
 {
     public void SendEEncodeImageData(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
