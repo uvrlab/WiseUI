@@ -4,14 +4,24 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
+using UnityEditor.Experimental.GraphView;
 
 public class TCPClient : MonoBehaviour
 {
-    protected TcpClient socket;
+    //protected TcpClient socket;
+    Socket socket;
+    byte[] receiveBuffer;
+    public readonly int receiveBufferSize;
 
     public void Connect(string serverIP, int serverPort)
     {
-        socket = new TcpClient(serverIP, serverPort);
+        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        IPAddress serverAddr = IPAddress.Parse(serverIP);
+        IPEndPoint clientEP = new IPEndPoint(serverAddr, serverPort);
+        socket.Connect(clientEP);
+
+        receiveBuffer = new byte[(long)receiveBufferSize];
+        //socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, SocketFlags.)
     }
 
     public bool isConnected
@@ -24,28 +34,11 @@ public class TCPClient : MonoBehaviour
             return socket.Connected;
         }
     }
-
+  
     /// Send message to server using socket connection.     
     public void SendMessage(byte[] buffer)
     {
-        if (socket == null)
-        {
-            return;
-        }
-        try
-        {
-            // Get a stream object for writing.             
-            NetworkStream stream = socket.GetStream();
-            if (stream.CanWrite)
-            {
-                // Write byte array to socketConnection stream.                 
-                stream.Write(buffer, 0, buffer.Length);
-            }
-        }
-        catch (SocketException socketException)
-        {
-            Debug.LogError("Socket exception: " + socketException);
-        }
+        socket.Send(buffer);
     }
 
     public void ReceieveCallBack(IAsyncResult aResult)
@@ -56,7 +49,6 @@ public class TCPClient : MonoBehaviour
     public void Disconnect()
     {
         //Waiting for exiting ohter thread.
-        Thread.Sleep(100);
         if (socket != null && socket.Connected)
         {
             //socket.Disconnect(false);
