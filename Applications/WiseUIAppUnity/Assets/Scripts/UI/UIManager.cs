@@ -42,10 +42,8 @@ public class UIManager : MonoBehaviour
     public GameObject detectedImagePlane;
     Coroutine detectionUpdateHandle;
     //Camera Image planes
-
     
     Coroutine sendImageDataHandle;
-
 
     private void Awake()
     {
@@ -85,7 +83,6 @@ public class UIManager : MonoBehaviour
     }
     private void Start()
     {
-
         LoadUIContents();
         //images.SetActive(false);
         pvImagePlane.SetActive(false);
