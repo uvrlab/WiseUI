@@ -10,6 +10,7 @@ if __name__ == '__main__':
     # tcpip.BeginReceive(ReceieveCallBack)
 
 def ReceieveCallBack(im_input):
+
     # result_hand = track_hand.Process(im_input)
     # result_object = track_object.Process(im_input)
 

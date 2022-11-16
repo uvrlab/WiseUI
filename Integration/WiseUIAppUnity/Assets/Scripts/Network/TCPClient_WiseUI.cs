@@ -6,6 +6,26 @@ using UnityEngine;
 
 public class TCPClient_WiseUI : TCPClient
 {
+    byte[] receiveBuffer;
+    public readonly int receiveBufferSize;
+    
+    public override void Connect(string serverIP, int serverPort)
+    {
+        base.Connect(serverIP, serverPort);
+        receiveBuffer = new byte[(long)receiveBufferSize];
+        
+        //base.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, SocketFlags., ReceieveCallBack, null);)
+
+    }
+
+    public override void ReceieveCallBack(IAsyncResult aResult)
+    {
+        GetComponent<TrackHand>().Process();
+        //track_hand(aResult)
+        
+        throw new NotImplementedException();
+    }
+    
     public void SendEEncodeImageData(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
         var now = DateTime.Now.ToLocalTime();

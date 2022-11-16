@@ -9,19 +9,18 @@ using UnityEditor.Experimental.GraphView;
 public class TCPClient : MonoBehaviour
 {
     //protected TcpClient socket;
-    Socket socket;
-    byte[] receiveBuffer;
-    public readonly int receiveBufferSize;
+    protected Socket socket;
+    
 
-    public void Connect(string serverIP, int serverPort)
+    public virtual void Connect(string serverIP, int serverPort)
     {
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         IPAddress serverAddr = IPAddress.Parse(serverIP);
         IPEndPoint clientEP = new IPEndPoint(serverAddr, serverPort);
         socket.Connect(clientEP);
 
-        receiveBuffer = new byte[(long)receiveBufferSize];
-        //socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, SocketFlags.)
+        
+        
     }
 
     public bool isConnected
@@ -41,7 +40,7 @@ public class TCPClient : MonoBehaviour
         socket.Send(buffer);
     }
 
-    public void ReceieveCallBack(IAsyncResult aResult)
+    public virtual void ReceieveCallBack(IAsyncResult aResult)
     {
 
     }
