@@ -1,27 +1,38 @@
-# import tcpip
+from StreamServer import StreamServer
 # import track_hand
 # import track_object
+import cv2
 
-# main function.
-if __name__ == '__main__':
+def ReceieveCallBack(sock, header, im_input):
+    frameID = header['frameID']
+    dataType = header['dataType']
+    timestamp = header['timestamp']
+    # intrinsic = header['intrinsic'] # is not implemented yet.
+    # extrinsic = header['extrinsic'] # is not implemented yet.
 
-    ''' Start to receive data'''
-    # tcpip.ServerOpen(server, port)
-    # tcpip.BeginReceive(ReceieveCallBack)
-
-def ReceieveCallBack(im_input):
+    cv2.imshow(im_input)
+    cv2.waitKey(1)
 
     # result_hand = track_hand.Process(im_input)
     # result_object = track_object.Process(im_input)
 
     ''' Packing data for sending to hololens '''
-    # data_pack =  PackingData(result_hand, result_object)
+    result_hand = dict()
+    data_pack = PackingData(frameID, result_hand)
 
     ''' Send data'''
-    # tcpip.send(data_pack)
+    sock.send(data_pack)
 
 
+def PackingData(frameID, result):
+    dummy = dict()
 
-def PackingData(result_hand, result_object):
-    #
+    dummy['frameID'] = frameID
+    return dummy
+
+if __name__ == '__main__':
+
+    server = StreamServer()
+    server.Listening('', 9091, ReceieveCallBack)
+
 
