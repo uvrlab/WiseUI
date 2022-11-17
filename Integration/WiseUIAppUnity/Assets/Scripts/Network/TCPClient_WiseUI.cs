@@ -1,37 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
+using static TCPClient;
 
 public class TCPClient_WiseUI : TCPClient
 {
-    byte[] receiveBuffer;
-    public readonly int receiveBufferSize;
-    
+
+    public delegate void ReceiveCallBack(byte[] data);
+    ReceiveCallBack receiveCallback;
+
     public override void Connect(string serverIP, int serverPort)
     {
         base.Connect(serverIP, serverPort);
-        receiveBuffer = new byte[(long)receiveBufferSize];
-        
-        //base.socket.BeginReceive(receiveBuffer, 0, receiveBufferSize, SocketFlags., ReceieveCallBack, null);)
-
-    }
-
-    public override void ReceieveCallBack(IAsyncResult aResult)
-    {
-        GetComponent<TrackHand>().Process();
-        //track_hand(aResult)
-        
-        throw new NotImplementedException();
     }
     
-    public void SendEEncodeImageData(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
+    public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
         var now = DateTime.Now.ToLocalTime();
         var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
 
-        var header = new HL2StreamHeaderInfo();
+        var header = new RGBImageHeader();
 
         header.frameID = frameID;
         header.width = texture.width;
@@ -69,7 +61,7 @@ public class TCPClient_WiseUI : TCPClient
 
         Debug.LogFormat("Header data size : {0}, Image data size : {1}, Total data size : {2}", bHeader.Length, bImage.Length, totalSize);
 
-        base.SendMessage(bTotal);
+        Send(bTotal);
     }
     
     ImageFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)
@@ -86,5 +78,54 @@ public class TCPClient_WiseUI : TCPClient
                 return ImageFormat.RGB;
         }
         return ImageFormat.INVALID;
+    }
+
+    public void BeginReceive(ReceiveCallBack callback)
+    {
+        receiveCallback = callback;
+        var headerSize = Marshal.SizeOf(typeof(ResultDataHeader));
+        receiveBuffer = new byte[(long)receiveBufferSize];
+        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHeaderReceive), receiveBuffer);
+    }
+
+    void OnHeaderReceive(IAsyncResult aResult)
+    {
+        byte[] receivedData = (byte[])aResult.AsyncState;
+
+        ResultDataHeader resultDataHeader = new ResultDataHeader();
+        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+        JsonUtility.FromJsonOverwrite(receivedDataString, resultDataHeader);
+
+        var frameID = resultDataHeader.frameID;
+        var timestamp = resultDataHeader.timestamp;
+        var dataType = resultDataHeader.dataType;
+
+        if (dataType == DataType.Object)
+        {
+            var dataSize = Marshal.SizeOf(typeof(ObjectData));
+            receiveBuffer = new byte[(long)receiveBufferSize];
+            socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnObjectDataReceive), receiveBuffer);
+        }
+        else if (dataType == DataType.Hand)
+        {
+            var dataSize = Marshal.SizeOf(typeof(HandTrackingData));
+            receiveBuffer = new byte[(long)receiveBufferSize];
+            socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHandDataReceive), receiveBuffer);
+        }
+    }
+
+    void OnObjectDataReceive(IAsyncResult aResult)
+    {
+        byte[] receivedData = (byte[])aResult.AsyncState;
+        ObjectData resultData = new ObjectData();
+        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+        JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
+    }
+    void OnHandDataReceive(IAsyncResult aResult)
+    {
+        byte[] receivedData = (byte[])aResult.AsyncState;
+        HandTrackingData resultData = new HandTrackingData();
+        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+        JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
     }
 }

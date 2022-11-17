@@ -1,96 +1,67 @@
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Net;
-using UnityEngine;
+using System.Text;
 using System.Threading;
-using UnityEditor.Experimental.GraphView;
+using UnityEditor.MemoryProfiler;
 using UnityEditor.PackageManager;
-using UnityEditor.Sprites;
-using PlasticPipe.Remoting;
+using UnityEngine;
 
-public class TCPIPTest : MonoBehaviour
+
+public class TCPIPTest 
 {
-    Socket serverSock;
-
-    Thread serverReceiveThread;
-
-    int port = 7000;
-
+    int port = 7125;
+    int countReceive;
+    
     [SetUp]
     public void SetUp()
     {
         //server open
-        //listener = new TcpListener(serverIP, port);
-        serverReceiveThread = new Thread(ServerReceiveLoop);
-
-        serverSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        serverSock.Bind(new IPEndPoint(IPAddress.Any, port));
-
-        serverReceiveThread = new Thread(ServerReceiveLoop);
-        serverReceiveThread.Start();
+       
     }
     [TearDown]
     public void TearDown()
     {
-        serverReceiveThread.Interrupt();
-        serverSock.Close();
+       
     }
 
     [Test]
     public void CommunicationTest()
     {
-        //client open
-        var go = new GameObject();
-        var script = go.AddComponent<TCPClient>();
+        //server open
+        TCPServer server = new TCPServer();
+        server.Open(port, 64);
+        Thread.Sleep(100);
 
-        script.Connect("127.0.0.1", port);
-        Assert.IsTrue(script.isConnected);
+        ////connect clients to server.
+        var client = new TCPClient();
+        client.Connect("127.0.0.1", port);
+        client.BeginReceive(OnDataReceive);
+        
+        Thread.Sleep(200);
+        Assert.AreEqual(1, server.connectedClients.Count);
+        countReceive = 0;
+        
+        //send message to clients.
+        server.BroadCast(Encoding.UTF8.GetBytes("Hello"));
+        Thread.Sleep(100);
 
-        //echo test
+        ////close clients
+        //client.Disconnect();
+        //Assert.IsFalse(client.isConnected);
+        //Thread.Sleep(100);
+        //Assert.AreEqual(0, server.connectedClients.Count);
 
-        //script.SendMessage("Test Message.");
-
-        script.Disconnect();
-        Assert.IsFalse(script.isConnected);
+        //////server close.
+        server.Close();
+        Assert.IsFalse(server.isConnected);
     }
 
-    void ServerReceiveLoop()
+    //server receive
+    void OnDataReceive(byte[] buffer)
     {
-        try
-        {
-            while (true)
-            {
-                //Socket clientSock;
-                byte[] buff = new byte[1024];
-
-                serverSock.Listen(10); // client 접속을 기다림.
-                Socket clientSock = serverSock.Accept();
-
-                Debug.Log(clientSock.LocalEndPoint.ToString() + " : " + "connected.");
-                while (true)
-                {
-                    try
-                    {
-                        int receive = clientSock.Receive(buff);
-                        clientSock.Send(buff);
-                    }
-                    catch (SocketException e)
-                    {
-                        Debug.Log(e.ErrorCode + ":" + e.Message);
-                        break;
-                    }
-
-                }
-                Thread.Sleep(1);
-            }
-        }
-        catch (ThreadInterruptedException e)
-        {
-            Debug.LogFormat(e.Message);
-        }
+        countReceive++;
+        var result = Encoding.UTF8.GetString(buffer);
+        Debug.Log(result);
+        Assert.AreEqual("Hello2", result);
     }
-
 
 }

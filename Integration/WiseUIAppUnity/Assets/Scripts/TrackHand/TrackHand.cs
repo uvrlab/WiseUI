@@ -16,7 +16,7 @@ public class TrackHand : MonoBehaviour
         
     }
 
-    public void Process(/*result*/)
+    public void OnReceiveData()
     {
         //
     }

@@ -3,14 +3,14 @@ from StreamServer import StreamServer
 # import track_object
 import cv2
 
-def ReceieveCallBack(sock, header, im_input):
+def ReceieveCallBack(header, im_input):
     frameID = header['frameID']
     dataType = header['dataType']
     timestamp = header['timestamp']
     # intrinsic = header['intrinsic'] # is not implemented yet.
     # extrinsic = header['extrinsic'] # is not implemented yet.
 
-    cv2.imshow(im_input)
+    cv2.imshow("pv", im_input)
     cv2.waitKey(1)
 
     # result_hand = track_hand.Process(im_input)
@@ -21,7 +21,7 @@ def ReceieveCallBack(sock, header, im_input):
     data_pack = PackingData(frameID, result_hand)
 
     ''' Send data'''
-    sock.send(data_pack)
+    #sock.send(data_pack)
 
 
 def PackingData(frameID, result):

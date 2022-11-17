@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 {
     // Modules
     public HoloLens2PVCameraReader pvCameraReader;
-    public TCPClient_WiseUI tcpClient;
+    public TCPClientManager tcpClient;
     public ARRCObjectronDetector objectDetector;
 
     public Interactable confButton;
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
-        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClient_WiseUI>();
+        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClientManager>();
         objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronDetector>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();
@@ -213,14 +213,14 @@ public class UIManager : MonoBehaviour
                 pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = latestTexture;
                 
                 if(connectButton.IsToggled)
-                    tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
+                    tcpClient.SendRGBImage(pvCameraReader.FrameID, latestTexture);
 
                 if (startDetectionButton.IsToggled)
                 {
                     objectDetector.Run(latestTexture);
                 }
                     
-                //tcpClient.SendEEncodeImageData(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
+                //tcpClient.SendRGBImage(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
                 //float time_to_send = Time.time - start_time;
                 //DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
             }

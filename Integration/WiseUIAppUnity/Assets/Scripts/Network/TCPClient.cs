@@ -1,26 +1,38 @@
 using System;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEditor.Experimental.GraphView;
+using UnityEngine.tvOS;
 
-public class TCPClient : MonoBehaviour
+public class TCPClient
 {
     //protected TcpClient socket;
     protected Socket socket;
+    
+    protected byte[] receiveBuffer;
+    public readonly int receiveBufferSize = 1024;
+
+    protected EndPoint remoteEP;
+    public delegate void RunDelegate(byte[] buffer);
+    RunDelegate runDelegate;
     
 
     public virtual void Connect(string serverIP, int serverPort)
     {
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        IPAddress serverAddr = IPAddress.Parse(serverIP);
-        IPEndPoint clientEP = new IPEndPoint(serverAddr, serverPort);
-        socket.Connect(clientEP);
+        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 1000);
 
-        
-        
+        remoteEP = new IPEndPoint(IPAddress.Parse(serverIP), serverPort);
+
+        socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), null);
+    }
+
+    ~ TCPClient()
+    {
+        //Disconnect();
     }
 
     public bool isConnected
@@ -33,28 +45,74 @@ public class TCPClient : MonoBehaviour
             return socket.Connected;
         }
     }
-  
+    private void ConnectCallback(IAsyncResult ar)
+    {
+        try
+        {
+            // Complete the connection.
+            socket.EndConnect(ar);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+        }
+    }
+
     /// Send message to server using socket connection.     
-    public void SendMessage(byte[] buffer)
+    public void SendMessage(string message)
     {
-        socket.Send(buffer);
+        Send(Encoding.UTF8.GetBytes(message));
+    }
+    
+    public void Send(byte[] buffer)
+    {
+        //socket.Send(buffer);
+        socket.BeginSend(buffer, 0, buffer.Length, 0,
+           new AsyncCallback(SendCallback), socket);
     }
 
-    public virtual void ReceieveCallBack(IAsyncResult aResult)
+    private void SendCallback(IAsyncResult ar)
     {
+        try
+        {
+            // Retrieve the socket from the state object.
+            Socket client = (Socket)ar.AsyncState;
 
+            // Complete sending the data to the remote device.
+            int bytesSent = client.EndSend(ar);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.ToString());
+        }
     }
 
+    public void BeginReceive(RunDelegate callback)
+    {
+        runDelegate = callback;
+        receiveBuffer = new byte[(long)receiveBufferSize];
+        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnDataReceive), receiveBuffer);
+    }
+
+    void OnDataReceive(IAsyncResult aResult)
+    {
+        byte[] receivedData = (byte[])aResult.AsyncState;
+        runDelegate(receivedData);
+    }
+    
     public void Disconnect()
     {
         //Waiting for exiting ohter thread.
-        if (socket != null && socket.Connected)
+        if (socket != null)
         {
-            //socket.Disconnect(false);
             socket.Close();
-            socket = null;
+            socket.Dispose();
+            //socket.Disconnect(false);
+            //socket.BeginDisconnect(true, DisconnectCallback, null);
+            //socket = null;
         }
     }
+
     private void OnDestroy()
     {
         Disconnect();
