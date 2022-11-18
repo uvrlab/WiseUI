@@ -10,7 +10,7 @@ using UnityEngine.tvOS;
 public class TCPClient
 {
     //protected TcpClient socket;
-    protected Socket socket;
+    public Socket socket;
     
     protected byte[] receiveBuffer;
     public readonly int receiveBufferSize = 1024;
@@ -19,7 +19,7 @@ public class TCPClient
     public delegate void RunDelegate(byte[] buffer);
     RunDelegate runDelegate;
     
-
+    
     public virtual void Connect(string serverIP, int serverPort)
     {
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -68,7 +68,7 @@ public class TCPClient
     {
         //socket.Send(buffer);
         socket.BeginSend(buffer, 0, buffer.Length, 0,
-           new AsyncCallback(SendCallback), socket);
+           new AsyncCallback(SendCallback), null);
     }
 
     private void SendCallback(IAsyncResult ar)
@@ -76,10 +76,10 @@ public class TCPClient
         try
         {
             // Retrieve the socket from the state object.
-            Socket client = (Socket)ar.AsyncState;
+            //Socket client = (Socket)ar.AsyncState;
 
             // Complete sending the data to the remote device.
-            int bytesSent = client.EndSend(ar);
+            int bytesSent = socket.EndSend(ar);
         }
         catch (Exception e)
         {
@@ -98,6 +98,7 @@ public class TCPClient
     {
         byte[] receivedData = (byte[])aResult.AsyncState;
         runDelegate(receivedData);
+        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnDataReceive), receiveBuffer);
     }
     
     public void Disconnect()
@@ -105,9 +106,9 @@ public class TCPClient
         //Waiting for exiting ohter thread.
         if (socket != null)
         {
+            socket.Disconnect(false);
             socket.Close();
             socket.Dispose();
-            //socket.Disconnect(false);
             //socket.BeginDisconnect(true, DisconnectCallback, null);
             //socket = null;
         }

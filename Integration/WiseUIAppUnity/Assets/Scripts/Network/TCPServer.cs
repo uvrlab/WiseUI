@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -22,7 +23,7 @@ public class TCPServer
     {
         //serverSock.Close();
     }
-    public bool isConnected
+    public bool IsOpened
     {
         get
         {
@@ -32,16 +33,34 @@ public class TCPServer
             return serverSock.Connected;
         }
     }
-    public void Open(int port, long receiveBufferSize)
+    public bool IsAccepted(Socket client)
     {
-        // Start is called before the first frame update
-        this.receiveBufferSize = receiveBufferSize;
-        
-        serverSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        serverSock.Bind(new IPEndPoint(IPAddress.Any, port));
-        serverSock.Listen(10);
-        serverSock.BeginAccept(AcceptCallback, null);
-        
+        if (client == null)
+            return false;
+
+        var target = connectedClients.Find(x => x.RemoteEndPoint == client.LocalEndPoint);
+        return target != null;
+    }
+    public bool Open(int port, long receiveBufferSize)
+    {
+        try
+        {
+            serverSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 1000);
+            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 1000);
+            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            serverSock.Bind(new IPEndPoint(IPAddress.Any, port));
+            serverSock.Listen(10);
+            serverSock.BeginAccept(new AsyncCallback(AcceptCallback), null);
+            this.receiveBufferSize = receiveBufferSize;
+            receiveBuffer = new byte[receiveBufferSize];
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+            return false;
+        }
     }
 
     void AcceptCallback(IAsyncResult ar)
@@ -59,7 +78,7 @@ public class TCPServer
         }
         catch (Exception e)
         {
-            //Debug.LogError(e.Message);
+            Debug.LogError(e.Message);
         }
     }
     void DisconnectCallback(IAsyncResult aResult)
@@ -75,7 +94,7 @@ public class TCPServer
         foreach (Socket client in connectedClients)
         {
             //serverSock.Send(buffer);
-            //client.Send(buffer);
+            client.Send(buffer);
             //client.Send(buffer, 0, buffer.Length, SocketFlags.None);  // echo
              //client.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallback), client);
         }

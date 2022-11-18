@@ -3,7 +3,7 @@ from StreamServer import StreamServer
 # import track_object
 import cv2
 
-def ReceieveCallBack(header, im_input):
+def ReceieveCallBack(header, im_input, queue_data_to_send):
     frameID = header['frameID']
     dataType = header['dataType']
     timestamp = header['timestamp']
@@ -18,10 +18,12 @@ def ReceieveCallBack(header, im_input):
 
     ''' Packing data for sending to hololens '''
     result_hand = dict()
-    data_pack = PackingData(frameID, result_hand)
+    #data_pack = PackingData(frameID, result_hand)
 
     ''' Send data'''
-    #sock.send(data_pack)
+    data_pack = "Hello"
+    queue_data_to_send.put(data_pack)
+    queue_data_to_send.join()
 
 
 def PackingData(frameID, result):

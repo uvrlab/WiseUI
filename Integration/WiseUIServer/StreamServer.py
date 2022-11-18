@@ -14,8 +14,8 @@ import time
 import pickle as pkl
 import os
 import struct
-
-
+import logging
+logger = logging.getLogger(__name__)
 class DataType:
     PV = 1
     Depth = 2
@@ -39,21 +39,40 @@ class ImageFormat:
     U8 = 6
     Float32 = 7
 
+def SendLoop(sock, queue_data_to_send):
+    while True:
+        try:
+            data = queue_data_to_send.get()
+            queue_data_to_send.task_done()
+
+            if not data:
+                break
+
+            sock.sendall(data)
+
+        except socket.error as msg:
+            print('Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+            break
 
 def ReceiveLoop(sock, queue_data):
     while True:
         try:
             start_time = time.time()
+            #check socket is alive
+            #is_socket_closed(sock)
             recvData = recv_msg(sock)
             eps = 0.0000001
             time_to_receive = time.time() - start_time
             #print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + eps)))
 
-            queue_data.put(recvData)
-            queue_data.join()
+            #queue_data.put(recvData)
+            #queue_data.join()
 
+            sock.send(b'Hello')
             if not recvData:
                 break
+
+            print(recvData)
             # print('Data received from' + str(addr) + ' : ' + str(datetime.now()))
 
         except socket.error as msg:
@@ -87,6 +106,20 @@ def ProcessingLoop(queue_data, ReceiveCallBack):
         time_to_process = time.time() - start_time
         #print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
+def is_socket_closed(sock: socket.socket) -> bool:
+    try:
+        # this will try to read bytes without blocking and also without removing them from buffer (peek only)
+        data = sock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
+        if len(data) == 0:
+            return True
+    except BlockingIOError:
+        return False  # socket is open and reading from it would block
+    except ConnectionResetError:
+        return True  # socket was closed for some other reason
+    except Exception as e:
+        logger.exception("unexpected exception when checking if a socket is closed")
+        return False
+    return False
 
 def ProcessingData(header, data, ReceiveCallBack):
     dataType = header['dataType']
@@ -112,11 +145,11 @@ def ProcessingData(header, data, ReceiveCallBack):
         eps = 0.0000001
         print(f'Time delay : {delay_time}, fps : {1 / (delay_time + eps)}')
 
-        ReceiveCallBack(header, img_np)
+        #ReceiveCallBack(header, img_np)
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
         # cv2.namedWindow("pvimage")
-        # cv2.imshow("pvimage", img_np)
-        # cv2.waitKey(1)
+        cv2.imshow("pvimage", img_np)
+        cv2.waitKey(1)
         # print('Image with ts ' + str(timestamp) + ' is saved')
 
 
@@ -198,16 +231,16 @@ class StreamServer:
             # ReceiveLoop(conn, queue)
 
             thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data,))
-            thread_process = threading.Thread(target=ProcessingLoop, args=(queue_data, ReceiveCallBack))
+            #thread_process = threading.Thread(target=ProcessingLoop, args=(queue_data, ReceiveCallBack))
 
             thread_receive.daemon = True
-            thread_process.daemon = True
+            #thread_process.daemon = True
 
             thread_receive.start()
-            thread_process.start()
+            #thread_process.start()
 
             thread_receive.join()
-            thread_process.join()
+            #thread_process.join()
 
             print('Disconnected with ' + addr[0] + ':' + str(addr[1]))
 

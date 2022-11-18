@@ -83,7 +83,8 @@ public class TCPClient_WiseUI : TCPClient
     public void BeginReceive(ReceiveCallBack callback)
     {
         receiveCallback = callback;
-        var headerSize = Marshal.SizeOf(typeof(ResultDataHeader));
+        // var headerSize = Marshal.SizeOf(typeof(ResultDataHeader));
+        //receiveBufferSize = 4;
         receiveBuffer = new byte[(long)receiveBufferSize];
         socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHeaderReceive), receiveBuffer);
     }

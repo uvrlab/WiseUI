@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -11,7 +12,7 @@ public class TCPClientManager : MonoBehaviour
     public void Connect(string serverIP, int serverPort)
     {
         client.Connect(serverIP, serverPort);
-        //client.BeginReceive(OnReceiveData);
+        client.BeginReceive(OnReceiveData);
     }
 
     public void Disconnect()
@@ -24,8 +25,10 @@ public class TCPClientManager : MonoBehaviour
     }
 
 
-    public void OnReceiveData(byte[] data)
+    public void OnReceiveData(byte[] buffer)
     {
+        var result = Encoding.UTF8.GetString(buffer);
+        Debug.Log(result);
         //Debug.LogFormat("Received data : {0}", header.dataType);
     }
 }

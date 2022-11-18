@@ -287,13 +287,13 @@ public class ARRCObjectronTest
         float[] heatmap_data_barracua = heatmap_barrcuda.data.Download(heatmap_barrcuda.shape);
         //float[] offsetmap_data_barracuda = offsetmap_barracuda.data.Download(offsetmap_barracuda.shape);
         CheckRange(heatmap_data_barracua, 0, 1);
-        {
-            _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
-            string writepath1 = "heatmap_by_barracuda";
-            IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
-            _WriteHeatMapTensor(output_tensor_heatmap_barracuda, 480, 640, pWritePath1, 0);
-            Marshal.FreeHGlobal(pWritePath1);
-        }
+        //{
+        //    _TENSOR output_tensor_heatmap_barracuda = new _TENSOR(1, 40, 30, 1, heatmap_data_barracua);
+        //    string writepath1 = "heatmap_by_barracuda";
+        //    IntPtr pWritePath1 = Marshal.StringToHGlobalAnsi(writepath1);
+        //    _WriteHeatMapTensor(output_tensor_heatmap_barracuda, 480, 640, pWritePath1, 0);
+        //    Marshal.FreeHGlobal(pWritePath1);
+        //}
         
         //var ModeilFileFullPath = GetFirstFoundFilePath(Application.dataPath, modelFileName + ".onnx");
         //IntPtr pModelPath = Marshal.StringToHGlobalAnsi(ModeilFileFullPath);

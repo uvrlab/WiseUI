@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -6,24 +7,34 @@ using UnityEngine.Assertions;
 
 public class ServerTest : MonoBehaviour
 {
-    TCPServer server = new TCPServer();
+    //TCPServer server = new TCPServer();
     TCPClient client = new TCPClient();
 
     // Start is called before the first frame update
     private void Awake()
     {
-        server.Open(1234, 64);
+        //server.Open(1234, 64);
+        client.Connect("127.0.0.1", 9091);
+        client.BeginReceive(OnDataReceive);
     }
     void Start()
     {
-        client.Connect("127.0.0.1", 1234);
-        client.BeginReceive(OnDataReceive);
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        client.SendMessage("hello");
+        var content = Encoding.UTF8.GetBytes("hello");
+        
+        int totalSize = 4 + content.Length;
+        var contentSize = BitConverter.GetBytes(content.Length);
+        
+        byte[] buffer = new byte[totalSize];
+        System.Buffer.BlockCopy(contentSize, 0, buffer, 0, 4);
+        System.Buffer.BlockCopy(content, 0, buffer, 4, content.Length);
+
+        client.Send(buffer);
         //server.BroadCast(Encoding.UTF8.GetBytes("Hello"));
     }
 
@@ -36,6 +47,6 @@ public class ServerTest : MonoBehaviour
     private void OnDestroy()
     {
         client.Disconnect();
-        server.Close();
+        //server.Close();
     }
 }
