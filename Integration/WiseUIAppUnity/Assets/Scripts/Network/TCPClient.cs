@@ -104,9 +104,9 @@ public class TCPClient
             }
             socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, OnDataReceive, null);
         }
-        catch (Exception e)
+        catch (SocketException e)
         {
-            Debug.LogError(e.Message);
+             //Debug.LogError(e.Message);
         }
         
     }

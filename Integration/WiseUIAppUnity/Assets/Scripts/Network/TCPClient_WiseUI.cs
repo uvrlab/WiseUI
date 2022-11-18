@@ -87,54 +87,11 @@ public class TCPClient_WiseUI : TCPClient
         }
         return ImageFormat.INVALID;
     }
-
-    
-    //void OnHeaderReceive(IAsyncResult aResult)
-    //{
-    //    byte[] receivedData = (byte[])aResult.AsyncState;
-
-    //    ResultDataHeader resultDataHeader = new ResultDataHeader();
-    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultDataHeader);
-
-    //    var frameID = resultDataHeader.frameID;
-    //    var timestamp = resultDataHeader.timestamp;
-    //    var dataType = resultDataHeader.dataType;
-
-    //    if (dataType == DataType.Object)
-    //    {
-    //        var dataSize = Marshal.SizeOf(typeof(ObjectData));
-    //        receiveBuffer = new byte[(long)receiveBufferSize];
-    //        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnObjectDataReceive), receiveBuffer);
-    //    }
-    //    else if (dataType == DataType.Hand)
-    //    {
-    //        var dataSize = Marshal.SizeOf(typeof(HandTrackingData));
-    //        receiveBuffer = new byte[(long)receiveBufferSize];
-    //        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHandDataReceive), receiveBuffer);
-    //    }
-    //}
-
-    //void OnObjectDataReceive(IAsyncResult aResult)
-    //{
-    //    byte[] receivedData = (byte[])aResult.AsyncState;
-    //    ObjectData resultData = new ObjectData();
-    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
-    //}
-    
-    //void OnHandDataReceive(IAsyncResult aResult)
-    //{
-    //    byte[] receivedData = (byte[])aResult.AsyncState;
-    //    HandTrackingData resultData = new HandTrackingData();
-    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
-    //}
-    
+  
     public override void Disconnect()
     {
         SendEncodedData("#Disconnect#");
-        Thread.Sleep(1000);
+        Thread.Sleep(100); //Wait to send disconnect message.
         base.Disconnect();
     }
     

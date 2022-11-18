@@ -64,7 +64,7 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             queue_data_received.join()
 
             if recvData == b"#Disconnect#":
-                print("Disconnect")
+                #print("Disconnect")
                 break
 
             #print(recvData)
