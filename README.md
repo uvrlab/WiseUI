@@ -115,7 +115,9 @@ Point cloud sample not supported in Unity 2021.2 or later since OpenXR becomes t
 
 
 ## Lisense
-To be updated.
+WiseUI Applications are released under a MIT license. For a list of all code/library dependencies (and associated licenses), please see Dependencies.md.(To be updated)
+
+For a closed-source version of WiseUI's modules for commercial purposes, please contact the authors : uvrlab@kaist.ac.kr, ikbeomjeon@kaist.ac.kr
 
 
 
