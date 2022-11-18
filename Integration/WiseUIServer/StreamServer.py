@@ -58,25 +58,21 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             start_time = time.time()
             # check socket is alive
             # is_socket_closed(sock)
-            recvData = recv_msg(sock) # 첫 4 byte에 기록된 content size 만큼만 받는다.
+            recvData = recv_msg(sock) # buffer size를 고정하지 않고 첫 4 byte에 기록된 buffer size 만큼 이어서 받는다.
+            # print(recvData)
+
+            if recvData is None:
+                continue
 
             queue_data_received.put(recvData)
             queue_data_received.join()
 
             if recvData == b"#Disconnect#":
-                #print("Disconnect")
                 break
-
-            #print(recvData)
-
             time_to_receive = time.time() - start_time
             #print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
 
-
-
-            """
-            echo test 용
-            """
+            """ echo test 용 """
             #queue_data_send.put(recvData)
             #queue_data_send.join()
 
