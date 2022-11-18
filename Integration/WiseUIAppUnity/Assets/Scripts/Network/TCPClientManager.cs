@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class TCPClientManager : MonoBehaviour
 {
-    TCPClient client = new TCPClient_WiseUI();
+    readonly TCPClient client = new TCPClient_WiseUI();
 
     public void Connect(string serverIP, int serverPort)
     {
@@ -27,9 +27,14 @@ public class TCPClientManager : MonoBehaviour
 
     public void OnReceiveData(byte[] buffer)
     {
-        var result = BitConverter.ToInt32(buffer, 0);
-        Debug.Log(result);
-        //Debug.LogFormat("Received data : {0}", header.dataType);
+        string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
+        //Debug.Log(receivedDataString);
+       
+        ResultDataHeader resultData = new ResultDataHeader();
+        JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
+
+        Debug.LogFormat("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", resultData.frameID, resultData.timestamp_receive, resultData.timestamp_send, resultData.handData.numJoints, resultData.handData.joints.Length, resultData.handData.joints[0,1]);
+
     }
 
     private void OnDestroy()

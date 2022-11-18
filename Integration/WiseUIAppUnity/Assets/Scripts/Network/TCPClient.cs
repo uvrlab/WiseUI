@@ -12,14 +12,14 @@ public class TCPClient
     //protected TcpClient socket;
     public Socket socket;
     
-    protected byte[] receiveBuffer;
-    public readonly int receiveBufferSize = 1024;
+    
+    public static readonly long receiveBufferSize = 1024;
+    protected byte[] receiveBuffer = new byte[receiveBufferSize];
 
     protected EndPoint remoteEP;
-    public delegate void RunDelegate(byte[] buffer);
-    RunDelegate runDelegate;
-    
-    
+    public delegate void ReceiveCallback(byte[] buffer);
+    public ReceiveCallback receiveCallback;
+
     public virtual void Connect(string serverIP, int serverPort)
     {
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -86,20 +86,31 @@ public class TCPClient
         }
     }
 
-    public void BeginReceive(RunDelegate callback)
+    public virtual void BeginReceive(ReceiveCallback callback)
     {
-        runDelegate = callback;
-        receiveBuffer = new byte[(long)receiveBufferSize];
-        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnDataReceive), receiveBuffer);
+        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, OnDataReceive, null);
+        receiveCallback = callback;
+    }
+    void OnDataReceive(IAsyncResult ar)
+    {
+        try
+        {
+            int bytesRead = socket.EndReceive(ar);
+            if (bytesRead > 0)
+            {
+                byte[] buffer = new byte[bytesRead];
+                Array.Copy(receiveBuffer, buffer, bytesRead);
+                receiveCallback(buffer);
+            }
+            socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, OnDataReceive, null);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+        }
+        
     }
 
-    void OnDataReceive(IAsyncResult aResult)
-    {
-        byte[] receivedData = (byte[])aResult.AsyncState;
-        runDelegate(receivedData);
-        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnDataReceive), receiveBuffer);
-    }
-    
     public virtual void Disconnect()
     {
         if (socket != null)

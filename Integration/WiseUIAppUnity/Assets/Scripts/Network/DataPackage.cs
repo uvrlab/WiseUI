@@ -22,9 +22,6 @@ public enum DataType
     Depth = 2,
     PointCloud = 3,
     IMU = 4,
-    Object = 5,
-    Hand = 6,
-    SLAM = 7
 }
 public enum ImageCompression
 {
@@ -48,24 +45,27 @@ public class RGBImageHeader
 }
 
 [System.Serializable]
-public class ObjectData : ResultDataHeader
+public class ObjectData
 {
     public int numObjects;
-    public float[] data;
+   
 }
 
 [System.Serializable]
-public class HandTrackingData : ResultDataHeader
+public class HandData
 {
+    public int numJoints;
+    public float[,] joints = new float[27, 3];
 
     //필요한 거 정의
 }
 [System.Serializable]
 public class ResultDataHeader
 {
-    public int frameID = -1;
-    public double timestamp = -1;
-    public DataType dataType;
-    public int dataSize;
+    public int frameID;
+    public double timestamp_receive;
+    public double timestamp_send;
+    public HandData handData = new HandData();
+    public ObjectData objectData = new ObjectData();
 }
 

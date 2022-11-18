@@ -19,32 +19,14 @@ import pickle as pkl
 import os
 import struct
 import logging
+
+from DataPackage import DataType, ImageFormat
+
 logger = logging.getLogger(__name__)
 
 event = threading.Event()
 
-class DataType:
-    PV = 1
-    Depth = 2
-    PC = 3
-    Sensor = 4
 
-
-class ImageCompression:
-    None_ = 0
-    JPEG = 1
-    PNG = 2
-
-
-class ImageFormat:
-    INVALID = -1
-    RGBA = 1
-    BGRA = 2  # proper to numpy format.
-    ARGB = 3
-    RGB = 4
-    U16 = 5
-    U8 = 6
-    Float32 = 7
 
 def SendLoop(sock, queue_data_to_send):
     while True:
@@ -155,7 +137,7 @@ def ProcessingData(socket, header, data, ReceiveCallBack, queue_data_send):
         height = header['height']
         imageFormat = header['imageFormat']
 
-        dim = getDimension(imageFormat)
+        dim = GetDimension(imageFormat)
 
         # if img_compression == ImageCompression.JPEG:
         # encode_param=[int(cv2.IMWRITE_JPEG_QUALITY), jpgQuality]
@@ -163,7 +145,7 @@ def ProcessingData(socket, header, data, ReceiveCallBack, queue_data_send):
 
         img_np = np.frombuffer(data, np.uint8).reshape((height, width, dim))
         delay_time = time.time() - timestamp
-        print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
+        # print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
 
         ReceiveCallBack(header, img_np, socket)
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
@@ -195,7 +177,7 @@ def recv_all(sock, n):
     return data
 
 
-def getDimension(imgFormat: ImageFormat):
+def GetDimension(imgFormat: ImageFormat):
     if imgFormat == ImageFormat.RGBA or imgFormat == ImageFormat.BGRA \
             or imgFormat == ImageFormat.ARGB or imgFormat == ImageFormat.Float32:
         return 4
@@ -209,16 +191,6 @@ def getDimension(imgFormat: ImageFormat):
         raise (Exception("Invalid ImageFormat Error."))
 
 
-def check_socket(sock):
-    # Send the data
-    message = b'Hello world'
-    logger.debug('sending data: "%s"', message)
-    len_sent = sock.send(message)
-
-    # Receive a response
-    logger.debug('waiting for response')
-    response = sock.recv(len_sent)
-    logger.debug('response from server: "%s"', response)
 
 class StreamServer:
     def __init__(self):

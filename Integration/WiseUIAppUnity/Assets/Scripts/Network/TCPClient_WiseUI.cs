@@ -11,14 +11,6 @@ using static TCPClient;
 
 public class TCPClient_WiseUI : TCPClient
 {
-
-    public delegate void ReceiveCallBack(byte[] data);
-    ReceiveCallBack receiveCallback;
-
-    public override void Connect(string serverIP, int serverPort)
-    {
-        base.Connect(serverIP, serverPort);
-    }
     
     public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
@@ -96,56 +88,48 @@ public class TCPClient_WiseUI : TCPClient
         return ImageFormat.INVALID;
     }
 
-    public void BeginReceive(ReceiveCallBack callback)
-    {
-        receiveCallback = callback;
-        // var headerSize = Marshal.SizeOf(typeof(ResultDataHeader));
-        //receiveBufferSize = 4;
-        receiveBuffer = new byte[(long)receiveBufferSize];
-        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHeaderReceive), receiveBuffer);
-    }
-
-    void OnHeaderReceive(IAsyncResult aResult)
-    {
-        byte[] receivedData = (byte[])aResult.AsyncState;
-
-        ResultDataHeader resultDataHeader = new ResultDataHeader();
-        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-        JsonUtility.FromJsonOverwrite(receivedDataString, resultDataHeader);
-
-        var frameID = resultDataHeader.frameID;
-        var timestamp = resultDataHeader.timestamp;
-        var dataType = resultDataHeader.dataType;
-
-        if (dataType == DataType.Object)
-        {
-            var dataSize = Marshal.SizeOf(typeof(ObjectData));
-            receiveBuffer = new byte[(long)receiveBufferSize];
-            socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnObjectDataReceive), receiveBuffer);
-        }
-        else if (dataType == DataType.Hand)
-        {
-            var dataSize = Marshal.SizeOf(typeof(HandTrackingData));
-            receiveBuffer = new byte[(long)receiveBufferSize];
-            socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHandDataReceive), receiveBuffer);
-        }
-    }
-
-    void OnObjectDataReceive(IAsyncResult aResult)
-    {
-        byte[] receivedData = (byte[])aResult.AsyncState;
-        ObjectData resultData = new ObjectData();
-        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-        JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
-    }
     
-    void OnHandDataReceive(IAsyncResult aResult)
-    {
-        byte[] receivedData = (byte[])aResult.AsyncState;
-        HandTrackingData resultData = new HandTrackingData();
-        string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
-        JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
-    }
+    //void OnHeaderReceive(IAsyncResult aResult)
+    //{
+    //    byte[] receivedData = (byte[])aResult.AsyncState;
+
+    //    ResultDataHeader resultDataHeader = new ResultDataHeader();
+    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultDataHeader);
+
+    //    var frameID = resultDataHeader.frameID;
+    //    var timestamp = resultDataHeader.timestamp;
+    //    var dataType = resultDataHeader.dataType;
+
+    //    if (dataType == DataType.Object)
+    //    {
+    //        var dataSize = Marshal.SizeOf(typeof(ObjectData));
+    //        receiveBuffer = new byte[(long)receiveBufferSize];
+    //        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnObjectDataReceive), receiveBuffer);
+    //    }
+    //    else if (dataType == DataType.Hand)
+    //    {
+    //        var dataSize = Marshal.SizeOf(typeof(HandTrackingData));
+    //        receiveBuffer = new byte[(long)receiveBufferSize];
+    //        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnHandDataReceive), receiveBuffer);
+    //    }
+    //}
+
+    //void OnObjectDataReceive(IAsyncResult aResult)
+    //{
+    //    byte[] receivedData = (byte[])aResult.AsyncState;
+    //    ObjectData resultData = new ObjectData();
+    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
+    //}
+    
+    //void OnHandDataReceive(IAsyncResult aResult)
+    //{
+    //    byte[] receivedData = (byte[])aResult.AsyncState;
+    //    HandTrackingData resultData = new HandTrackingData();
+    //    string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
+    //    JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
+    //}
     
     public override void Disconnect()
     {
