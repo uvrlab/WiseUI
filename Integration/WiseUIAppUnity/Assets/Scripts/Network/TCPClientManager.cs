@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class TCPClientManager : MonoBehaviour
 {
-    TCPClient_WiseUI client = new TCPClient_WiseUI();
+    TCPClient client = new TCPClient_WiseUI();
 
     public void Connect(string serverIP, int serverPort)
     {
@@ -21,14 +21,19 @@ public class TCPClientManager : MonoBehaviour
     }
     public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
-        client.SendRGBImage(frameID, texture, comp, jpgQuality); 
+        ((TCPClient_WiseUI)client).SendRGBImage(frameID, texture, comp, jpgQuality); 
     }
 
 
     public void OnReceiveData(byte[] buffer)
     {
-        var result = Encoding.UTF8.GetString(buffer);
+        var result = BitConverter.ToInt32(buffer, 0);
         Debug.Log(result);
         //Debug.LogFormat("Received data : {0}", header.dataType);
+    }
+
+    private void OnDestroy()
+    {
+        client.Disconnect();
     }
 }

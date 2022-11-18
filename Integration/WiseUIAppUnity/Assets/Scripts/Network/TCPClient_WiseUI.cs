@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using static TCPClient;
 
@@ -59,11 +61,25 @@ public class TCPClient_WiseUI : TCPClient
         System.Buffer.BlockCopy(bHeader, 0, bTotal, 4 + 4, bHeader.Length);
         System.Buffer.BlockCopy(bImage, 0, bTotal, 4 + 4 + bHeader.Length, bImage.Length);
 
-        Debug.LogFormat("Header data size : {0}, Image data size : {1}, Total data size : {2}", bHeader.Length, bImage.Length, totalSize);
+        // Debug.LogFormat("Header data size : {0}, Image data size : {1}, Total data size : {2}", bHeader.Length, bImage.Length, totalSize);
 
         Send(bTotal);
     }
     
+
+    public void SendEncodedData(string message)
+    {
+        var content = Encoding.UTF8.GetBytes(message);
+
+        int totalSize = 4 + content.Length;
+        var contentSize = BitConverter.GetBytes(content.Length);
+
+        byte[] buffer = new byte[totalSize];
+        System.Buffer.BlockCopy(contentSize, 0, buffer, 0, 4);
+        System.Buffer.BlockCopy(content, 0, buffer, 4, content.Length);
+
+        base.Send(buffer);
+    }
     ImageFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)
     {
         switch (textureFormat)
@@ -122,6 +138,7 @@ public class TCPClient_WiseUI : TCPClient
         string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
         JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
     }
+    
     void OnHandDataReceive(IAsyncResult aResult)
     {
         byte[] receivedData = (byte[])aResult.AsyncState;
@@ -129,4 +146,12 @@ public class TCPClient_WiseUI : TCPClient
         string receivedDataString = Encoding.ASCII.GetString(receivedData, 0, receivedData.Length);
         JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
     }
+    
+    public override void Disconnect()
+    {
+        SendEncodedData("#Disconnect#");
+        Thread.Sleep(1000);
+        base.Disconnect();
+    }
+    
 }

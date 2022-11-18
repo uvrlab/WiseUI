@@ -3,7 +3,7 @@ from StreamServer import StreamServer
 # import track_object
 import cv2
 
-def ReceieveCallBack(header, im_input, queue_data_to_send):
+def ReceieveCallBack(header, im_input, socket):
     frameID = header['frameID']
     dataType = header['dataType']
     timestamp = header['timestamp']
@@ -21,9 +21,12 @@ def ReceieveCallBack(header, im_input, queue_data_to_send):
     #data_pack = PackingData(frameID, result_hand)
 
     ''' Send data'''
-    data_pack = "Hello"
-    queue_data_to_send.put(data_pack)
-    queue_data_to_send.join()
+
+    data_pack = frameID.to_bytes(4, byteorder='little')
+    socket.send(data_pack)
+
+    #queue_data_to_send.put(data_pack)
+    #queue_data_to_send.join()
 
 
 def PackingData(frameID, result):

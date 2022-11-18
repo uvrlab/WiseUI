@@ -1,12 +1,16 @@
+import errno
 import sys
 import socket
 import json
 import threading
-from queue import Queue
+from functools import partial
+from queue import Queue, Empty
 from datetime import datetime
 import csv
 from ast import literal_eval
 import time
+from stat import S_ISSOCK
+
 import numpy as np
 import cv2
 import time
@@ -16,6 +20,9 @@ import os
 import struct
 import logging
 logger = logging.getLogger(__name__)
+
+event = threading.Event()
+
 class DataType:
     PV = 1
     Depth = 2
@@ -42,37 +49,55 @@ class ImageFormat:
 def SendLoop(sock, queue_data_to_send):
     while True:
         try:
-            data = queue_data_to_send.get()
-            queue_data_to_send.task_done()
-
-            if not data:
-                break
-
-            sock.sendall(data)
+            # if queue_data_to_send.empty():
+            #     if event.is_set():
+            #         print("SendLoop break")
+            #         break
+            #     else:
+            #         continue
+            try:
+                data = queue_data_to_send.get()
+                sock.send(data)
+                queue_data_to_send.task_done()
+            except Empty:
+                continue
+                #print("SendLoop break")
+                #if event.is_set():
+                #print("SendLoop break")
+                #break
 
         except socket.error as msg:
             print('Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             break
 
-def ReceiveLoop(sock, queue_data):
+def ReceiveLoop(sock, queue_data_received, queue_data_send):
     while True:
         try:
             start_time = time.time()
-            #check socket is alive
-            #is_socket_closed(sock)
-            recvData = recv_msg(sock)
-            eps = 0.0000001
-            time_to_receive = time.time() - start_time
-            #print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + eps)))
+            # check socket is alive
+            # is_socket_closed(sock)
+            recvData = recv_msg(sock) # 첫 4 byte에 기록된 content size 만큼만 받는다.
 
-            #queue_data.put(recvData)
-            #queue_data.join()
+            queue_data_received.put(recvData)
+            queue_data_received.join()
 
-            sock.send(b'Hello')
-            if not recvData:
+            if recvData == b"#Disconnect#":
+                print("Disconnect")
                 break
 
-            print(recvData)
+            #print(recvData)
+
+            time_to_receive = time.time() - start_time
+            #print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
+
+
+
+            """
+            echo test 용
+            """
+            #queue_data_send.put(recvData)
+            #queue_data_send.join()
+
             # print('Data received from' + str(addr) + ' : ' + str(datetime.now()))
 
         except socket.error as msg:
@@ -81,47 +106,43 @@ def ReceiveLoop(sock, queue_data):
             # continue
 
 
-def ProcessingLoop(queue_data, ReceiveCallBack):
+def ProcessingLoop(socket, queue_data_received, queue_data_send, ReceiveCallBack):
     while True:
-        start_time = time.time()
+        try:
+            recvData = queue_data_received.get()
+            queue_data_received.task_done()
 
-        recvData = queue_data.get()
-        queue_data.task_done()
+            if recvData == b"#Disconnect#":
+                break
 
-        if not recvData:
-            break
+            start_time = time.time()
+            header_size = struct.unpack("<i", recvData[0:4])[0]
+            bHeader = recvData[4:4 + header_size]
+            header = json.loads(bHeader.decode())
+            data_length = header['data_length']
 
-        header_size = struct.unpack("<i", recvData[0:4])[0]
-        bHeader = recvData[4:4 + header_size]
-        header = json.loads(bHeader.decode())
-        data_length = header['data_length']
+            image_data = recvData[4 + header_size: 4 + header_size + data_length]
 
-        image_data = recvData[4 + header_size: 4 + header_size + data_length]
+            # print(header_size)
+            # print(recvData[4:4 + header_size])
+            # print(len(image_data))
+            # print(data_length)
+            ProcessingData(socket, header, image_data, ReceiveCallBack, queue_data_send)
+            time_to_process = time.time() - start_time
+            #print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
-        # print(header_size)
-        #print(recvData[4:4 + header_size])
-        # print(len(image_data))
-        # print(data_length)
-        ProcessingData(header, image_data, ReceiveCallBack)
-        time_to_process = time.time() - start_time
-        #print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
+        except Empty:
+            #queue_data_received.task_done()
+            continue
+            #print("ProcessingLoop break")
+            #if event.is_set():
+               # print("ProcessingLoop break")
+                #break
 
-def is_socket_closed(sock: socket.socket) -> bool:
-    try:
-        # this will try to read bytes without blocking and also without removing them from buffer (peek only)
-        data = sock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
-        if len(data) == 0:
-            return True
-    except BlockingIOError:
-        return False  # socket is open and reading from it would block
-    except ConnectionResetError:
-        return True  # socket was closed for some other reason
-    except Exception as e:
-        logger.exception("unexpected exception when checking if a socket is closed")
-        return False
-    return False
 
-def ProcessingData(header, data, ReceiveCallBack):
+
+
+def ProcessingData(socket, header, data, ReceiveCallBack, queue_data_send):
     dataType = header['dataType']
     data_length = header['data_length']
     timestamp = header['timestamp']
@@ -142,14 +163,13 @@ def ProcessingData(header, data, ReceiveCallBack):
 
         img_np = np.frombuffer(data, np.uint8).reshape((height, width, dim))
         delay_time = time.time() - timestamp
-        eps = 0.0000001
-        print(f'Time delay : {delay_time}, fps : {1 / (delay_time + eps)}')
+        print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
 
-        #ReceiveCallBack(header, img_np)
+        ReceiveCallBack(header, img_np, socket)
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
         # cv2.namedWindow("pvimage")
-        cv2.imshow("pvimage", img_np)
-        cv2.waitKey(1)
+        # cv2.imshow("pvimage", img_np)
+        # cv2.waitKey(1)
         # print('Image with ts ' + str(timestamp) + ' is saved')
 
 
@@ -189,16 +209,29 @@ def getDimension(imgFormat: ImageFormat):
         raise (Exception("Invalid ImageFormat Error."))
 
 
+def check_socket(sock):
+    # Send the data
+    message = b'Hello world'
+    logger.debug('sending data: "%s"', message)
+    len_sent = sock.send(message)
+
+    # Receive a response
+    logger.debug('waiting for response')
+    response = sock.recv(len_sent)
+    logger.debug('response from server: "%s"', response)
+
 class StreamServer:
     def __init__(self):
         self.save_folder = 'data/'
+
 
     def Listening(self, serverHost, serverPort, ReceiveCallBack):
         if not os.path.isdir(self.save_folder):
              os.mkdir(self.save_folder)
 
         while (True):
-            queue_data = Queue()
+            queue_data_received = Queue()
+            queue_data_send = Queue()
             # Create a socket
 
             serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -230,17 +263,25 @@ class StreamServer:
             print('Connected with ' + addr[0] + ':' + str(addr[1]))
             # ReceiveLoop(conn, queue)
 
-            thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data,))
-            #thread_process = threading.Thread(target=ProcessingLoop, args=(queue_data, ReceiveCallBack))
+            event.clear()
+
+            thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data_received,queue_data_send))
+            #thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
+            thread_process = threading.Thread(target=ProcessingLoop, args=(sock, queue_data_received, queue_data_send, ReceiveCallBack))
 
             thread_receive.daemon = True
-            #thread_process.daemon = True
+            #thread_send.daemon = True
+            thread_process.daemon = True
 
             thread_receive.start()
-            #thread_process.start()
+            #thread_send.start()
+            thread_process.start()
 
             thread_receive.join()
-            #thread_process.join()
+            #thread_send.join()
+            thread_process.join()
+
+
 
             print('Disconnected with ' + addr[0] + ':' + str(addr[1]))
 

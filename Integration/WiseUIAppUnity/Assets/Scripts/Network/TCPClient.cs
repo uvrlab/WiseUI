@@ -49,7 +49,6 @@ public class TCPClient
     {
         try
         {
-            // Complete the connection.
             socket.EndConnect(ar);
         }
         catch (Exception e)
@@ -59,25 +58,25 @@ public class TCPClient
     }
 
     /// Send message to server using socket connection.     
-    public void SendMessage(string message)
+    public void SendString(string message)
     {
         Send(Encoding.UTF8.GetBytes(message));
     }
     
     public void Send(byte[] buffer)
     {
-        //socket.Send(buffer);
-        socket.BeginSend(buffer, 0, buffer.Length, 0,
-           new AsyncCallback(SendCallback), null);
+        if(socket!=null)
+        {
+            socket.BeginSend(buffer, 0, buffer.Length, 0,
+               new AsyncCallback(SendCallback), null);
+        }
+        
     }
 
     private void SendCallback(IAsyncResult ar)
     {
         try
         {
-            // Retrieve the socket from the state object.
-            //Socket client = (Socket)ar.AsyncState;
-
             // Complete sending the data to the remote device.
             int bytesSent = socket.EndSend(ar);
         }
@@ -101,22 +100,15 @@ public class TCPClient
         socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, new AsyncCallback(OnDataReceive), receiveBuffer);
     }
     
-    public void Disconnect()
+    public virtual void Disconnect()
     {
-        //Waiting for exiting ohter thread.
         if (socket != null)
         {
-            socket.Disconnect(false);
             socket.Close();
             socket.Dispose();
-            //socket.BeginDisconnect(true, DisconnectCallback, null);
-            //socket = null;
         }
     }
 
-    private void OnDestroy()
-    {
-        Disconnect();
-    }
+   
 
 }
