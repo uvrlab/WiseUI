@@ -29,9 +29,11 @@ public class TCPClientManager : MonoBehaviour
     {
         string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
         //Debug.Log(receivedDataString);
-       
-        ResultDataHeader resultData = new ResultDataHeader();
+
+        ResultData resultData = new ResultData();
         JsonUtility.FromJsonOverwrite(receivedDataString, resultData);
+
+        GetComponent<TrackHand>().ReceiveHandData(resultData.handData);
 
         Debug.LogFormat("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", resultData.frameID, resultData.timestamp_receive, resultData.timestamp_send, resultData.handData.numJoints, resultData.handData.joints.Length, resultData.handData.joints[0,1]);
 

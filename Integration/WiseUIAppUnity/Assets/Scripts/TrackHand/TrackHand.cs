@@ -16,8 +16,8 @@ public class TrackHand : MonoBehaviour
         
     }
 
-    public void OnReceiveData()
+    public void ReceiveHandData(HandData data)
     {
-        //
+        
     }
 }

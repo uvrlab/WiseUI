@@ -60,8 +60,10 @@ public class HandData
     //필요한 거 정의
 }
 [System.Serializable]
-public class ResultDataHeader
+public class ResultData
 {
+    //add to instrinsic 
+    //add to extrinsic
     public int frameID;
     public double timestamp_receive;
     public double timestamp_send;
