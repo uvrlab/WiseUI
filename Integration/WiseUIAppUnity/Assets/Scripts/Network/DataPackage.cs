@@ -1,6 +1,9 @@
+using Microsoft.MixedReality.Toolkit.Utilities;
+using OpenCvSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 
 
@@ -45,29 +48,61 @@ public class RGBImageHeader
 }
 
 [System.Serializable]
-public class ObjectData
+public class Joint
 {
-    public int numObjects;
-   
+    public int id;
+    public float x, y, z;
+    //public float q1, q2, q3, q4; 
 }
 
-[System.Serializable]
-public class HandData
-{
-    public int numJoints;
-    public float[,] joints = new float[27, 3];
 
+[System.Serializable]
+public class HandDataPackage
+{
     //필요한 거 정의
+     public List<Joint> joints = new List<Joint>();
+}
+
+[System.Serializable]
+public class Keypoint
+{
+    public int id;
+    public float x, y, z;
 }
 [System.Serializable]
-public class ResultData
+public class ObjectInfo
+{
+    public List<Keypoint> keypoints = new List<Keypoint>();
+    public int id;
+}
+
+
+[System.Serializable]
+public class ObjectDataPackage
+{
+    public List<ObjectInfo> objects = new List<ObjectInfo>();
+}
+[System.Serializable]
+public class FrameInfo
 {
     //add to instrinsic 
     //add to extrinsic
     public int frameID;
-    public double timestamp_receive;
-    public double timestamp_send;
-    public HandData handData = new HandData();
-    public ObjectData objectData = new ObjectData();
+    /// <summary>
+    /// //홀로렌즈에서 이미지를 보낸 시점
+    /// </summary>
+    public double timestamp_t1;
+    
+    /// <summary>
+    ///  //서버에서 이미지를 처리하고 다시 결과값을 홀로렌즈로 보낸 시점
+    /// </summary>
+    public double timestamp_t2;
+}
+[System.Serializable]
+public class ResultDataPackage
+{
+    public FrameInfo frameInfo = new FrameInfo();
+    public ObjectDataPackage objectDataPackage = new ObjectDataPackage();
+    public HandDataPackage handDataPackage = new HandDataPackage();
 }
 

@@ -13,7 +13,7 @@ public class TCPClient
     public Socket socket;
     
     
-    public static readonly long receiveBufferSize = 1024;
+    public static readonly long receiveBufferSize = 4096;
     protected byte[] receiveBuffer = new byte[receiveBufferSize];
 
     protected EndPoint remoteEP;

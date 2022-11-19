@@ -1,6 +1,6 @@
 import json
 import time
-from DataPackage import DataType
+from DataPackage import DataType, ObjectDataPackage
 from StreamServer import StreamServer
 # import track_hand
 # import track_object
@@ -17,35 +17,64 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
 
     """ Packing data for sending to hololens """
     resultData = dict()
-    resultData['frameID'] = frame_info['frameID']
-    resultData['timestamp_receive'] = frame_info['timestamp']
-    resultData['timestamp_send'] = time.time()
-    resultData['objectData'] = EndcodeObjectData(result_object)
-    resultData['handData'] = EncodeHandData(result_hand)
+    resultData['frameInfo'] = EncodeFrameInfo(frame_info)
+    resultData['objectDataPackage'] = EndcodeObjectDataPackage(result_object)
+    resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
 
     """ Send data """
     resultBytes = json.dumps(resultData).encode('utf-8')
+    print(resultBytes);
     print("bytes of result : {}".format(len(resultBytes)))
     client_socket.send(resultBytes)
+def EncodeFrameInfo(frame_info):
+    frameInfo = dict()
+    frameInfo['frameID'] = frame_info['frameID']
+    frameInfo['timestamp_t1'] = frame_info['timestamp']
+    frameInfo['timestamp_t2'] = float(time.time())
+    return frameInfo
 
-def EncodeHandData(hand_result):
+def EncodeHandDataPackage(hand_result):
     """ Encode hand data to json format """
 
     """ Example """
-    result_hand = dict()
-    result_hand['numJoints'] = 27
-    result_hand['joints'] = [[0.123] * 3 ] * 27
+    handDataPackage = dict()
+    num_joints = 21
+    joints = list()
+    for id in range(num_joints):
+        joint = dict()
+        joint['id'] = id
+        joint['x'] = 0.123
+        joint['y'] = 0.456
+        joint['z'] = 0.789
+        joints.append(joint)
+    handDataPackage['joints'] = joints
+    return handDataPackage
 
-    return result_hand
+def EndcodeObjectDataPackage(object_result):
+    """ Example """
+    num_obj = 3
+    #objectDataPackage = ObjectDataPackage()
+    objectDataPackage = dict()
 
-def EndcodeObjectData(object_result):
-    result_Object = dict()
-    result_Object['numObjects'] = 3
-    # result_Object['bboxs'] = [[0.0] * 4] * 3
-    # result_Object['labels'] = [0] * 3
-    # result_Object['scores'] = [0.0] * 3
+    objects = list()
+    for obj_id in range(num_obj):
+        objectInfo = dict()
+        keyPoints = list()
+        for kpt_id in range(8):
+            keyPoint = dict()
+            keyPoint['id'] = kpt_id
+            keyPoint['x'] = 0.123
+            keyPoint['y'] = 0.456
+            keyPoint['z'] = 0.789
+            keyPoints.append(keyPoint)
 
-    return result_Object
+        objectInfo['keypoints'] = keyPoints
+        objectInfo['id'] = obj_id
+        objects.append(objectInfo)
+
+    objectDataPackage['objects'] = objects
+
+    return objectDataPackage
 
 if __name__ == '__main__':
 
