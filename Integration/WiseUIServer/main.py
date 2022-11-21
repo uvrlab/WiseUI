@@ -22,10 +22,10 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
     resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
 
     """ Send data """
-    resultBytes = json.dumps(resultData).encode('utf-8')
-    print(resultBytes);
-    print("bytes of result : {}".format(len(resultBytes)))
-    client_socket.send(resultBytes)
+    result = json.dumps(resultData).encode('utf-8')
+    #print(resultBytes);
+    #print("bytes of result : {}".format(len(resultBytes)))
+    client_socket.send(result)
 def EncodeFrameInfo(frame_info):
     frameInfo = dict()
     frameInfo['frameID'] = frame_info['frameID']

@@ -89,12 +89,12 @@ public class FrameInfo
     //add to extrinsic
     public int frameID;
     /// <summary>
-    /// //홀로렌즈에서 이미지를 보낸 시점
+    /// //홀로렌즈에서 이미지를 서버로 보낸 시점
     /// </summary>
     public double timestamp_t1;
-    
+
     /// <summary>
-    ///  //서버에서 이미지를 처리하고 다시 결과값을 홀로렌즈로 보낸 시점
+    ///  //서버에서 처리 결과값을 홀로렌즈로 보낸 시점
     /// </summary>
     public double timestamp_t2;
 }
