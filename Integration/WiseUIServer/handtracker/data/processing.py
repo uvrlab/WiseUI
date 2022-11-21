@@ -44,13 +44,13 @@ def inference_extraHM(extra_uvd, idx, reinit_num=10):
 
 def generate_extraFeature(curr_uvd, ratio=[0.45, 0.25, 0.1, 0.2], debug=None):
     flag = int(np.random.choice(4, 1, p=ratio))
-    if flag is 0:
+    if flag == 0:
         extra_uvd = np.copy(curr_uvd)
         w_aug = 0.0
-    elif flag is 1:
+    elif flag == 1:
         w = np.random.uniform(0.25, 1.)
         extra_uvd, w_aug = generate_fake_prevpose(curr_uvd, weight=w)
-    elif flag is 2:
+    elif flag == 2:
         w = np.random.uniform(2., 5.)
         extra_uvd, w_aug = generate_fake_prevpose(curr_uvd, weight=w)
     else:

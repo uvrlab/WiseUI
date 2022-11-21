@@ -13,10 +13,10 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
     # intrinsic = frame_info['intrinsic'] # is not implemented yet.
     # extrinsic = frame_info['extrinsic'] # is not implemented yet.
 
-    # cv2.imshow("pv", rgb_image)
-    # cv2.waitKey(1)
-    result_object = None  # track_object.Process(im_input)
-    result_hand = track_hand.Process(im_input)
+    cv2.imshow("pv", rgb_image)
+    cv2.waitKey(1)
+    result_object = None  # track_object.Process(rgb_image)
+    result_hand = track_hand.Process(rgb_image)
 
     """ Packing data for sending to hololens """
     resultData = dict()
@@ -26,9 +26,10 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
 
     """ Send data """
     resultBytes = json.dumps(resultData).encode('utf-8')
-    print(resultBytes);
+    print(resultBytes)
     print("bytes of result : {}".format(len(resultBytes)))
     client_socket.send(resultBytes)
+
 def EncodeFrameInfo(frame_info):
     frameInfo = dict()
     frameInfo['frameID'] = frame_info['frameID']

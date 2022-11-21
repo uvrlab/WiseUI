@@ -170,7 +170,7 @@ class DexYCB(Dataset):
         self.extra = cfg.extra
 
         # 'train', 'val', 'test'
-        if self.mode is 'training':
+        if self.mode == 'training':
             self.mode = 'train'
             self._mode = 'training'
             self._name = 's0_train'
