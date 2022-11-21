@@ -2,9 +2,12 @@ import json
 import time
 from DataPackage import DataType, ObjectDataPackage
 from StreamServer import StreamServer
-# import track_hand
+from handtracker.module_SARTE import HandTracker
 # import track_object
 import cv2
+
+
+track_hand = HandTracker()
 
 def ReceiveCallBack(frame_info, rgb_image, client_socket):
     # intrinsic = frame_info['intrinsic'] # is not implemented yet.
@@ -13,7 +16,7 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
     # cv2.imshow("pv", rgb_image)
     # cv2.waitKey(1)
     result_object = None  # track_object.Process(im_input)
-    result_hand = None # track_hand.Process(im_input)
+    result_hand = track_hand.Process(im_input)
 
     """ Packing data for sending to hololens """
     resultData = dict()
@@ -43,9 +46,9 @@ def EncodeHandDataPackage(hand_result):
     for id in range(num_joints):
         joint = dict()
         joint['id'] = id
-        joint['x'] = 0.123
-        joint['y'] = 0.456
-        joint['z'] = 0.789
+        joint['x'] = hand_result[id, 0]
+        joint['y'] = hand_result[id, 1]
+        joint['z'] = hand_result[id, 2]
         joints.append(joint)
     handDataPackage['joints'] = joints
     return handDataPackage
