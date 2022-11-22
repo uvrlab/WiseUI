@@ -1,3 +1,4 @@
 [Bb]uild/
+__pycache__/
 /Integration/WiseUIServer/handtracker/checkpoint/*
 /Integration/WiseUIServer/handtracker/mano_data/*

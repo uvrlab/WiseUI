@@ -502,7 +502,7 @@ class SAR_crossWeight(nn.Module):
         feat_weight = self.extract_weight(feat_latent)
 
         for i in range(cfg.num_stage):
-            if i is 0:
+            if i == 0:
                 feat = self.fuse[i](
                     torch.cat((feat_mid,
                                prev_heatmap), dim=1))   # 128 + 21
@@ -650,7 +650,7 @@ class SAR_crossWeight_wVis(nn.Module):
         feat_weight = self.extract_weight(feat_latent)
 
         for i in range(cfg.num_stage):
-            if i is 0:
+            if i == 0:
                 feat = self.fuse[i](
                     torch.cat((feat_mid,
                                prev_heatmap), dim=1))   # 128 + 21
@@ -803,7 +803,7 @@ class SAR_crossWeight_wVis_light(nn.Module):
         feat_weight = self.extract_weight(feat_latent)
 
         for i in range(cfg.num_stage):
-            if i is 0:
+            if i == 0:
                 feat = self.fuse[i](
                     torch.cat((feat_mid,
                                prev_heatmap), dim=1))   # 128 + 21

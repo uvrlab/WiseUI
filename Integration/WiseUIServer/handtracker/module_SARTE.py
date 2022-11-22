@@ -36,6 +36,8 @@ class HandTracker():
     def Process(self, img): # input : img_cv
         ### hand detector(GY) - too slow ###
         # bbox_list, hand_side_list = self.detector.run(img)       # bbox : [bb_x_min, bb_y_min, bb_width, bb_height]
+        if img.shape[-1] == 4:
+            img = img[:, :, :-1]
 
         ### only consider 1 hand (prototype)
         # if len(bbox_list) is not 0:
@@ -49,17 +51,20 @@ class HandTracker():
         #     return np.zeros((799, 3))
 
         # hand detection module consume 69 ms, test with manual crop
-        imgSize = (img.shape[0], img.shape[1])
+        imgSize = (img.shape[0], img.shape[1])  # (360, 640)
 
-        h_margin = int((imgSize[0] - 480) / 2)
-        w_margin = int((imgSize[1] - 480) / 2)
+        # h_margin = int((imgSize[0] - 480) / 2)
+        # w_margin = int((imgSize[1] - 480) / 2)
 
-        bbox = [w_margin, h_margin, 480, 480]
+        bbox = [0, 0, imgSize[1], imgSize[0]]
 
 
         # crop img
         img, img2bb_trans, bb2img_trans, _, _, = \
             augmentation(img, bbox, 'evaluation', exclude_flip=False)
+
+        cv2.imshow("cropped", img/255.)
+        cv2.waitKey(1)
 
         # transform img
         img_pil = cv2pil(img)
@@ -101,11 +106,10 @@ class HandTracker():
         all_uvd = copy.deepcopy(coords_uvd)
 
         mesh_uvd = copy.deepcopy(all_uvd[:cfg.num_vert])  # (778, 3)
-        joint_uvd = copy.deepcopy(all_uvd[cfg.num_vert:])
+        joint_uvd = copy.deepcopy(all_uvd[cfg.num_vert:])   # (21, 3)
 
-        pred = np.copy(joint_uvd).flatten()  # cpu, numpy, (21, 3) -> (63)
-
-        return pred
+        # pred = np.copy(joint_uvd).flatten()  # cpu, numpy, (21, 3) -> (63)
+        return joint_uvd
 
 
 
