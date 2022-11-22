@@ -20,12 +20,6 @@ class ImageFormat:
     U8 = 6
     Float32 = 7
 
-class ObjectInfo:
-    def __init__(self, id):
-        self.id = id
-        #self.keypoints = list()
-class ObjectDataPackage:
-    def __init__(self):
-        self.objects = list()
+
 
 

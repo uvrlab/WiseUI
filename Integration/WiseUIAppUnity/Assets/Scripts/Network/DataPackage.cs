@@ -91,12 +91,12 @@ public class FrameInfo
     /// <summary>
     /// //홀로렌즈에서 이미지를 서버로 보낸 시점
     /// </summary>
-    public double timestamp_t1;
+    public double timestamp_sentFromClient;
 
     /// <summary>
     ///  //서버에서 처리 결과값을 홀로렌즈로 보낸 시점
     /// </summary>
-    public double timestamp_t2;
+    public double timestamp_sentFromServer;
 }
 [System.Serializable]
 public class ResultDataPackage

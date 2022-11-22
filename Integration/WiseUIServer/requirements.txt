@@ -1,6 +1,8 @@
+# WiseUIServer 모듈에서 필요한 것.
 # numpy
 # opencv-python
 
+# HandTracking모듈에서 필요한 것.
 certifi==2021.5.30
 chumpy==0.70
 numpy==1.21.1
