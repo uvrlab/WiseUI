@@ -1,5 +1,7 @@
 import numpy as np
-import sys
+import sys, os
+
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../mano_data"))
 from manopth.manolayer import ManoLayer
 
 print(sys.path)

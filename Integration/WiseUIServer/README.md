@@ -5,5 +5,6 @@
 - requirements.txt
 
 
-##
-will update checkpoint files and mano_data
+## Downloads
+[WISEUIServer/handtracker/checkpoint]: link
+[WISEUIServer/handtracker/mano_data]: link

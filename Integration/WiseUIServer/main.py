@@ -47,11 +47,12 @@ def EncodeHandDataPackage(hand_result):
     for id in range(num_joints):
         joint = dict()
         joint['id'] = id
-        joint['x'] = hand_result[id, 0]
-        joint['y'] = hand_result[id, 1]
-        joint['z'] = hand_result[id, 2]
+        joint['x'] = float(hand_result[id, 0])
+        joint['y'] = float(hand_result[id, 1])
+        joint['z'] = float(hand_result[id, 2])
         joints.append(joint)
     handDataPackage['joints'] = joints
+
     return handDataPackage
 
 def EndcodeObjectDataPackage(object_result):
