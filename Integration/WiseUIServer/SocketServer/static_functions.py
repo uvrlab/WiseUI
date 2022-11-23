@@ -73,7 +73,6 @@ def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
             queue_data_received.task_done()
 
             if recvData == b"#Disconnect#":
-                print('DecodingLoop break')
                 break
 
             start_time = time.time()

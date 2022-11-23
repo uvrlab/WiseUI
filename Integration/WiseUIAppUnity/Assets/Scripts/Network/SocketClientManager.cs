@@ -9,7 +9,9 @@ using UnityEngine;
 public class SocketClientManager : MonoBehaviour
 {
     readonly SocketClient client = new SocketClient_WiseUI();
-    ResultDataPackage resultData;
+    
+    ResultDataPackage latestResultData;
+    List<ResultDataPackage> queueResultData = new List<ResultDataPackage>();
     
     readonly object lock_object = new object();
 
@@ -25,6 +27,14 @@ public class SocketClientManager : MonoBehaviour
                 return isNewHandDataReceived;
             }
         }
+        set
+        {
+            lock (lock_object)
+            {
+                isNewHandDataReceived = value;
+            }
+        }
+    
     }
     public bool IsNewObjectDataReceived
     {
@@ -34,6 +44,21 @@ public class SocketClientManager : MonoBehaviour
             {
                 return isNewObjectDataReceived;
             }
+        }
+        set
+        {
+            lock (lock_object)
+            {
+                isNewObjectDataReceived = value;
+            }
+        }
+    }
+
+    public void SetHandDataReceived(bool value)
+    {
+        lock (lock_object)
+        {
+            isNewHandDataReceived = value;
         }
     }
 
@@ -63,7 +88,8 @@ public class SocketClientManager : MonoBehaviour
             isNewHandDataReceived = true;
             isNewObjectDataReceived = true;
             string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
-            resultData = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+            latestResultData = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+            queueResultData.Add(latestResultData);
         }
 
         //GetComponent<TrackHand>().ReceiveHandData(resultData.handData);
@@ -79,25 +105,29 @@ public class SocketClientManager : MonoBehaviour
 
     }
 
-    public void GetHandData(out FrameInfo frameInfo, out HandDataPackage handDataPackage)
+    public void GetLatestFrameData(out ResultDataPackage resultDataPackage)
     {
         lock (lock_object)
         {
-            frameInfo = resultData.frameInfo;
-            handDataPackage = resultData.handDataPackage;
-            isNewHandDataReceived = false;
+            resultDataPackage = latestResultData; // deep copy 필요함.(현재 shallow copy)
         }
     }
 
-    public void GetObjectData(out FrameInfo frameInfo, out ObjectDataPackage objectDataPackage)
+
+    public void GetNextFrameData(out ResultDataPackage resultDataPackage)
     {
-        lock(lock_object)
+        lock (lock_object)
         {
-            frameInfo = resultData.frameInfo;
-            objectDataPackage = resultData.objectDataPackage;
-            isNewObjectDataReceived = false;
+            if (queueResultData.Count > 1)
+            {
+                resultDataPackage = queueResultData[1];
+                queueResultData.RemoveAt(0);
+            }
+            else
+            {
+                throw new Exception("There is no next frame data.");
+            }
         }
-        
     }
 
     private void OnDestroy()

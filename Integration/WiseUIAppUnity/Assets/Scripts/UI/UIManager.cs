@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using SensorStream;
 using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 using static ARRCObjectronDetector;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -118,7 +119,7 @@ public class UIManager : MonoBehaviour
     }
     void ConnectButtonClick()
     {
-        Debug.Log(hostIPField.text);
+        //Debug.Log(hostIPField.text);
 
         if (!connectButton.IsToggled)
         {
@@ -136,7 +137,7 @@ public class UIManager : MonoBehaviour
             stateMessage.color = Color.white;
             stateMessage.text = string.Format("Success to connect : {0}:{1}", ip, port);
         }
-        catch(System.Exception e)
+        catch(Exception e)
         {
             stateMessage.text = string.Format("Fail to connect : {0}", e.Message);
             stateMessage.color = Color.red;

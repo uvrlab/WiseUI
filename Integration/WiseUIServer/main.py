@@ -21,8 +21,8 @@ def ProcessCallBack(frame_info, rgb_image, client_socket):
 
     cv2.imshow("pv", rgb_image)
     cv2.waitKey(1)
-    result_object = None  # track_object.Process(rgb_image)
-    result_hand = None # track_hand.Process(rgb_image)
+    result_object = None #track_object.Process(rgb_image)
+    result_hand =  None #track_hand.Process(rgb_image)
 
     """ Packing data for sending to hololens """
     resultData = dict()
