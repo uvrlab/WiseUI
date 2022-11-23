@@ -1,30 +1,12 @@
-import errno
-import sys
 import socket
 import json
-import threading
-from functools import partial
 from queue import Queue, Empty
-from datetime import datetime
-import csv
-from ast import literal_eval
-import time
-from stat import S_ISSOCK
 
 import numpy as np
-import cv2
 import time
-# import open3d as o3d
-import pickle as pkl
-import os
 import struct
-import logging
 
-from DataPackage import DataType, ImageFormat
-
-logger = logging.getLogger(__name__)
-
-event = threading.Event()
+from SocketServer.DataPackage import ImageFormat
 
 
 def SendLoop(sock, queue_data_to_send):
@@ -91,6 +73,7 @@ def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
             queue_data_received.task_done()
 
             if recvData == b"#Disconnect#":
+                print('DecodingLoop break')
                 break
 
             start_time = time.time()
@@ -183,69 +166,3 @@ def GetDimension(imgFormat: ImageFormat):
         return 1
     else:
         raise (Exception("Invalid ImageFormat Error."))
-
-
-class StreamServer:
-    def __init__(self):
-        self.save_folder = 'data/'
-
-    def Listening(self, serverHost, serverPort, ProcessCallBack):
-        if not os.path.isdir(self.save_folder):
-            os.mkdir(self.save_folder)
-
-        while (True):
-            queue_data_received = Queue()
-            queue_data_send = Queue()
-            # Create a socket
-
-            serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Bind server to port
-            try:
-                serverSock.bind((serverHost, serverPort))
-                print('Server bind to port ' + str(serverPort))
-            except socket.error as msg:
-                print(msg)
-                print('Bind failed. Error Code : Message ' + msg[0])
-                # print(msg[0])
-                # print(msg[1])
-                sys.exit(0)
-
-            serverSock.listen(10)
-            print('Start listening...')
-            serverSock.settimeout(3.0)
-
-            while True:
-                try:
-                    sock, addr = serverSock.accept()  # Blocking, wait for incoming connection
-                    break
-                except KeyboardInterrupt:
-                    sys.exit(0)
-
-                except Exception:
-                    continue
-
-            print('Connected with ' + addr[0] + ':' + str(addr[1]))
-            # ReceiveLoop(conn, queue)
-
-            event.clear()
-
-            thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data_received, queue_data_send))
-            # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
-            thread_decode = threading.Thread(target=DecodingLoop,
-                                              args=(sock, queue_data_received, queue_data_send, ProcessCallBack))
-
-
-
-            thread_receive.daemon = True
-            # thread_send.daemon = True
-            thread_decode.daemon = True
-
-            thread_receive.start()
-            # thread_send.start()
-            thread_decode.start()
-
-            thread_receive.join()
-            # thread_send.join()
-            thread_decode.join()
-
-            print('Disconnected with ' + addr[0] + ':' + str(addr[1]))
