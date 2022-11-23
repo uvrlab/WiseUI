@@ -37,10 +37,10 @@ public class SocketClientManager : MonoBehaviour
         }
     }
 
-    public void Connect(string serverIP, int serverPort)
+    public void Connect(string serverIP, int serverPort, int maxBufferSize = 4096)
     {
         client.Connect(serverIP, serverPort);
-        client.BeginReceive(OnReceiveData);
+        client.BeginReceive(OnReceiveData, maxBufferSize);
     }
 
     public void Disconnect()

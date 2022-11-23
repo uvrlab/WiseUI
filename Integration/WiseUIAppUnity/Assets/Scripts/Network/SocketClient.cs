@@ -11,10 +11,7 @@ public class SocketClient
 {
     //protected TcpClient socket;
     public Socket socket;
-    
-    
-    public static readonly long receiveBufferSize = 4096;
-    protected byte[] receiveBuffer = new byte[receiveBufferSize];
+    protected byte[] receiveBuffer;
 
     protected EndPoint remoteEP;
     public delegate void ReceiveCallback(byte[] buffer);
@@ -82,9 +79,10 @@ public class SocketClient
         }
     }
 
-    public virtual void BeginReceive(ReceiveCallback callback)
+    public virtual void BeginReceive(ReceiveCallback callback, int maxBufferSize)
     {
-        socket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref remoteEP, OnDataReceive, null);
+        receiveBuffer = new byte[maxBufferSize];
+        socket.BeginReceiveFrom(receiveBuffer, 0, maxBufferSize, SocketFlags.None, ref remoteEP, OnDataReceive, null);
         receiveCallback = callback;
     }
     void OnDataReceive(IAsyncResult ar)
