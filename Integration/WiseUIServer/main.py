@@ -1,12 +1,12 @@
 import json
 import time
 from StreamServer import StreamServer
-#from handtracker.module_SARTE import HandTracker
+from handtracker.module_SARTE import HandTracker
 # import track_object
 import cv2
 
 
-#track_hand = HandTracker()
+track_hand = HandTracker()
 
 def ReceiveCallBack(frame_info, rgb_image, client_socket):
     # intrinsic = frame_info['intrinsic'] # is not implemented yet.
@@ -14,8 +14,8 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
 
     cv2.imshow("pv", rgb_image)
     cv2.waitKey(1)
-    result_object = None  # track_object.Process(im_input)
-    result_hand = None #track_hand.Process(rgb_image)
+    result_object = None  # track_object.Process(rgb_image)
+    result_hand = track_hand.Process(rgb_image)
 
     """ Packing data for sending to hololens """
     resultData = dict()
@@ -24,10 +24,11 @@ def ReceiveCallBack(frame_info, rgb_image, client_socket):
     resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
 
     """ Send data """
-    result = json.dumps(resultData).encode('utf-8')
-    #print(resultBytes);
-    #print("bytes of result : {}".format(len(resultBytes)))
-    client_socket.send(result)
+    resultBytes = json.dumps(resultData).encode('utf-8')
+    print(resultBytes)
+    print("bytes of result : {}".format(len(resultBytes)))
+    client_socket.send(resultBytes)
+
 def EncodeFrameInfo(frame_info):
     frameInfo = dict()
     frameInfo['frameID'] = frame_info['frameID']
@@ -45,11 +46,12 @@ def EncodeHandDataPackage(hand_result):
     for id in range(num_joints):
         joint = dict()
         joint['id'] = id
-        joint['x'] = 1#hand_result[id, 0]
-        joint['y'] = 1#hand_result[id, 1]
-        joint['z'] = 1#hand_result[id, 2]
+        joint['x'] = float(hand_result[id, 0])
+        joint['y'] = float(hand_result[id, 1])
+        joint['z'] = float(hand_result[id, 2])
         joints.append(joint)
     handDataPackage['joints'] = joints
+
     return handDataPackage
 
 def EndcodeObjectDataPackage(object_result):
