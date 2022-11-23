@@ -4,6 +4,7 @@ class DataType:
     PC = 3
     IMU = 4
 
+
 class ImageCompression:
     None_ = 0
     JPEG = 1
@@ -19,7 +20,5 @@ class ImageFormat:
     U16 = 5
     U8 = 6
     Float32 = 7
-
-
 
 

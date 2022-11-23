@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 event = threading.Event()
 
 
-
 def SendLoop(sock, queue_data_to_send):
     while True:
         try:
@@ -43,14 +42,15 @@ def SendLoop(sock, queue_data_to_send):
                 queue_data_to_send.task_done()
             except Empty:
                 continue
-                #print("SendLoop break")
-                #if event.is_set():
-                #print("SendLoop break")
-                #break
+                # print("SendLoop break")
+                # if event.is_set():
+                # print("SendLoop break")
+                # break
 
         except socket.error as msg:
             print('Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             break
+
 
 def ReceiveLoop(sock, queue_data_received, queue_data_send):
     while True:
@@ -58,7 +58,7 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             start_time = time.time()
             # check socket is alive
             # is_socket_closed(sock)
-            recvData = recv_msg(sock) # buffer size를 고정하지 않고 첫 4 byte에 기록된 buffer size 만큼 이어서 받는다.
+            recvData = recv_msg(sock)  # buffer size를 고정하지 않고 첫 4 byte에 기록된 buffer size 만큼 이어서 받는다.
             # print(recvData)
 
             if recvData is None:
@@ -70,11 +70,11 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             if recvData == b"#Disconnect#":
                 break
             time_to_receive = time.time() - start_time
-            #print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
+            # print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
 
             """ echo test 용 """
-            #queue_data_send.put(recvData)
-            #queue_data_send.join()
+            # queue_data_send.put(recvData)
+            # queue_data_send.join()
 
             # print('Data received from' + str(addr) + ' : ' + str(datetime.now()))
 
@@ -84,7 +84,7 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             # continue
 
 
-def ProcessingLoop(socket, queue_data_received, queue_data_send, ReceiveCallBack):
+def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
     while True:
         try:
             recvData = queue_data_received.get()
@@ -105,22 +105,20 @@ def ProcessingLoop(socket, queue_data_received, queue_data_send, ReceiveCallBack
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
             # print(data_length)
-            ProcessingData(socket, header, image_data, ReceiveCallBack, queue_data_send)
+            DecodingData(socket, header, image_data, ProcessCallBack, queue_data_send)
             time_to_process = time.time() - start_time
-            #print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
+            # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
         except Empty:
-            #queue_data_received.task_done()
+            # queue_data_received.task_done()
             continue
-            #print("ProcessingLoop break")
-            #if event.is_set():
-               # print("ProcessingLoop break")
-                #break
+            # print("DecodingLoop break")
+            # if event.is_set():
+            # print("DecodingLoop break")
+            # break
 
 
-
-
-def ProcessingData(socket, header, data, ReceiveCallBack, queue_data_send):
+def DecodingData(socket, header, data, ProcessCallBack, queue_data_send):
     dataType = header['dataType']
     data_length = header['data_length']
     timestamp = header['timestamp']
@@ -143,7 +141,7 @@ def ProcessingData(socket, header, data, ReceiveCallBack, queue_data_send):
         delay_time = time.time() - timestamp
         # print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
 
-        ReceiveCallBack(header, img_np, socket)
+        ProcessCallBack(header, img_np, socket)
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
         # cv2.namedWindow("pvimage")
         # cv2.imshow("pvimage", img_np)
@@ -187,15 +185,13 @@ def GetDimension(imgFormat: ImageFormat):
         raise (Exception("Invalid ImageFormat Error."))
 
 
-
 class StreamServer:
     def __init__(self):
         self.save_folder = 'data/'
 
-
-    def Listening(self, serverHost, serverPort, ReceiveCallBack):
+    def Listening(self, serverHost, serverPort, ProcessCallBack):
         if not os.path.isdir(self.save_folder):
-             os.mkdir(self.save_folder)
+            os.mkdir(self.save_folder)
 
         while (True):
             queue_data_received = Queue()
@@ -233,24 +229,23 @@ class StreamServer:
 
             event.clear()
 
-            thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data_received,queue_data_send))
-            #thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
-            thread_process = threading.Thread(target=ProcessingLoop, args=(sock, queue_data_received, queue_data_send, ReceiveCallBack))
+            thread_receive = threading.Thread(target=ReceiveLoop, args=(sock, queue_data_received, queue_data_send))
+            # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
+            thread_decode = threading.Thread(target=DecodingLoop,
+                                              args=(sock, queue_data_received, queue_data_send, ProcessCallBack))
+
+
 
             thread_receive.daemon = True
-            #thread_send.daemon = True
-            thread_process.daemon = True
+            # thread_send.daemon = True
+            thread_decode.daemon = True
 
             thread_receive.start()
-            #thread_send.start()
-            thread_process.start()
+            # thread_send.start()
+            thread_decode.start()
 
             thread_receive.join()
-            #thread_send.join()
-            thread_process.join()
-
-
+            # thread_send.join()
+            thread_decode.join()
 
             print('Disconnected with ' + addr[0] + ':' + str(addr[1]))
-
-
