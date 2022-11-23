@@ -3,10 +3,12 @@
 # opencv-python
 
 # HandTracking모듈에서 필요한 것.
+mediapipe==0.9.0
 certifi==2021.5.30
 chumpy==0.70
 numpy==1.21.1
-opencv-python==4.5.3.56
+opencv-contrib-python==4.5.5.62
+opencv-python==4.6.0.66
 Pillow==8.3.1
 scipy==1.7.1
 six==1.16.0
