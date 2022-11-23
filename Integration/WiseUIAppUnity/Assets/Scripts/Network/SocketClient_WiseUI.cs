@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading;
 using UnityEditor.PackageManager;
 using UnityEngine;
-using static TCPClient;
+using static SocketClient;
 
-public class TCPClient_WiseUI : TCPClient
+public class SocketClient_WiseUI : SocketClient
 {
     
     public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)

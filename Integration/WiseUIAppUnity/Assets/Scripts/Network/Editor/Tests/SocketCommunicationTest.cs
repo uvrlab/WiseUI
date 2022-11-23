@@ -12,7 +12,7 @@ using UnityEngine;
 /// server, client를 한 프로세스에서 함께 열어서 테스트 할 예정이었으나, 
 /// 어떤 방법을 써도 한 프로세스에서 connect, send, receive등이 make sense하게 발생하지 않아서 테스트 코드 작성 중단. 
 /// </summary>
-public class SocketCommunicationTest 
+public class TCPIPTest 
 {
     
     int port = 9091;

@@ -7,8 +7,8 @@ using UnityEngine.Assertions;
 
 public class ServerTest : MonoBehaviour
 {
-    //TCPServer server = new TCPServer();
-    TCPClient client = new TCPClient();
+    //SocketServer server = new SocketServer();
+    SocketClient client = new SocketClient();
 
     // Start is called before the first frame update
     private void Awake()

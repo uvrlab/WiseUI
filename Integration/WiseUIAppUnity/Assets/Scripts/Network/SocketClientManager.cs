@@ -6,9 +6,9 @@ using System.Text;
 using TreeEditor;
 using UnityEngine;
 
-public class TCPClientManager : MonoBehaviour
+public class SocketClientManager : MonoBehaviour
 {
-    readonly TCPClient client = new TCPClient_WiseUI();
+    readonly SocketClient client = new SocketClient_WiseUI();
     ResultDataPackage resultData;
     
     readonly object lock_object = new object();
@@ -49,7 +49,7 @@ public class TCPClientManager : MonoBehaviour
     }
     public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
-        ((TCPClient_WiseUI)client).SendRGBImage(frameID, texture, comp, jpgQuality); 
+        ((SocketClient_WiseUI)client).SendRGBImage(frameID, texture, comp, jpgQuality); 
     }
 
 

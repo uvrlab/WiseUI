@@ -5,11 +5,11 @@ using UnityEngine;
 
 public class TrackHand : MonoBehaviour
 {
-    public TCPClientManager tcpClientManager;
+    public SocketClientManager tcpClientManager;
     // Start is called before the first frame update
     void Awake()
     {
-        tcpClientManager = GetComponent<TCPClientManager>();
+        tcpClientManager = GetComponent<SocketClientManager>();
     }
 
     // Update is called once per frame

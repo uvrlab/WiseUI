@@ -9,7 +9,7 @@ using System.Threading;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-public class TCPServer
+public class SocketServer
 {
     Socket serverSock;
 
@@ -19,7 +19,7 @@ public class TCPServer
     public List<Socket> connectedClients = new List<Socket>();
 
 
-    ~TCPServer()
+    ~SocketServer()
     {
         //serverSock.Close();
     }

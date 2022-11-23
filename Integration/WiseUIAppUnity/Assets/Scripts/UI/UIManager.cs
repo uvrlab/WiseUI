@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 {
     // Modules
     public HoloLens2PVCameraReader pvCameraReader;
-    public TCPClientManager tcpClient;
+    public SocketClientManager socketClient;
     public ARRCObjectronDetector objectDetector;
 
     public Interactable confButton;
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
-        tcpClient = GameObject.Find("Runnner").GetComponent<TCPClientManager>();
+        socketClient = GameObject.Find("Runnner").GetComponent<SocketClientManager>();
         objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronDetector>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();
@@ -122,7 +122,7 @@ public class UIManager : MonoBehaviour
 
         if (!connectButton.IsToggled)
         {
-            tcpClient.Disconnect();
+            socketClient.Disconnect();
             stateMessage.text = string.Format("Success to disconnect");
             return;
         }
@@ -132,7 +132,7 @@ public class UIManager : MonoBehaviour
             string ip = hostIPField.text;
             int port = int.Parse(portField.text);
 
-            tcpClient.Connect(ip, port);
+            socketClient.Connect(ip, port);
             stateMessage.color = Color.white;
             stateMessage.text = string.Format("Success to connect : {0}:{1}", ip, port);
         }
@@ -213,14 +213,14 @@ public class UIManager : MonoBehaviour
                 pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = latestTexture;
                 
                 if(connectButton.IsToggled)
-                    tcpClient.SendRGBImage(pvCameraReader.FrameID, latestTexture);
+                    socketClient.SendRGBImage(pvCameraReader.FrameID, latestTexture);
 
                 if (startDetectionButton.IsToggled)
                 {
                     objectDetector.Run(latestTexture);
                 }
                     
-                //tcpClient.SendRGBImage(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
+                //socketClient.SendRGBImage(pvCameraReader.FrameID, latestTexture, ImageCompression.None);
                 //float time_to_send = Time.time - start_time;
                 //DebugText.Instance.lines["Time_to_send"] = time_to_send.ToString();
             }

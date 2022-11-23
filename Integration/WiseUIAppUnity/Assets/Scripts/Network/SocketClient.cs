@@ -7,7 +7,7 @@ using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.tvOS;
 
-public class TCPClient
+public class SocketClient
 {
     //protected TcpClient socket;
     public Socket socket;
@@ -30,10 +30,6 @@ public class TCPClient
         socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), null);
     }
 
-    ~ TCPClient()
-    {
-        //Disconnect();
-    }
 
     public bool isConnected
     {
