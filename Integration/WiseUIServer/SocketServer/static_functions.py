@@ -1,12 +1,12 @@
 import socket
 import json
-from queue import Queue, Empty
+from queue import Empty
 
 import numpy as np
 import time
 import struct
 
-from SocketServer.DataPackage import ImageFormat
+from SocketServer.DataPackage import ImageFormat, DataType
 
 
 def SendLoop(sock, queue_data_to_send):
