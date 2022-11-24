@@ -7,7 +7,7 @@ using TreeEditor;
 using UnityEngine;
 
 
-public enum ImageFormat
+public enum DataFormat
 {
     INVALID = -1,
     RGBA = 1,
@@ -40,7 +40,7 @@ public class RGBImageHeader
     public double timestamp = -1;
     public DataType dataType;
     public ImageCompression dataCompressionType = ImageCompression.None;
-    public ImageFormat imageFormat = ImageFormat.INVALID;
+    public DataFormat imageFormat = DataFormat.INVALID;
     public int imageQulaity = 100;
     public long data_length;
     public int width;

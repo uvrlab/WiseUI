@@ -14,7 +14,7 @@ class ImageCompression:
     PNG = 2
 
 
-class ImageFormat:
+class DataFormat:
     INVALID = -1
     RGBA = 1
     BGRA = 2  # proper to numpy format.
@@ -26,18 +26,29 @@ class ImageFormat:
 
 
 class HoloLens2SensorData:
-    def __init__(self, header, image):
+    def __init__(self, header, data):
+        self.data = data
         self.frameID = header['frameID']
+        self.timestamp_fromClient = header['timestamp']
+        self.dataFormat = header['dataFormat']  # U16
+
+
+class HoloLens2PVImageData(HoloLens2SensorData):
+    def __init__(self, header, data):
+        super().__init__(header, data)
         self.Intrinsic = np.zeros((3, 3))
         self.Extrinsic = np.zeros((4, 4))
-
         self.width = header['width']
         self.height = header['height']
-        self.imageFormat = header['imageFormat']
-        self.image = image
 
-        # not used
-        self.dataCompressionType = header['dataCompressionType']
-        # not used
-        self.imageQulaity = header['imageQulaity']
+class HoloLens2DepthImageData(HoloLens2SensorData):
+    def __init__(self, header, data):
+        self.Extrinsic = np.zeros((4, 4))
+        self.width = header['width']
+        self.height = header['height']
 
+        super().__init__(header, data)
+
+class HoloLens2PointCloudData(HoloLens2SensorData):
+    def __init__(self, header, data):
+        super().__init__(header, data)

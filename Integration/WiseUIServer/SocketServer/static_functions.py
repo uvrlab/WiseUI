@@ -1,13 +1,13 @@
 import socket
 import json
-from queue import Empty
+from queue import Empty, Queue
 
 import cv2
 import numpy as np
 import time
 import struct
 
-from SocketServer.DataPackage import ImageFormat, DataType
+from SocketServer.DataPackage import DataFormat, DataType, HoloLens2PVImageData
 
 
 def SendLoop(sock, queue_data_to_send):
@@ -46,13 +46,11 @@ def ReceiveLoop(sock, queue_data_received):
             if recvData is None:
                 continue
 
-            if recvData == b"#Disconnect#":
-                break
-
             queue_data_received.put(recvData)
             queue_data_received.join()
 
-
+            if recvData == b"#Disconnect#":
+                break
             time_to_receive = time.time() - start_time
             # print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
 
@@ -68,58 +66,55 @@ def ReceiveLoop(sock, queue_data_received):
             # continue
 
 
-def DecodingLoop(queue_data_received, quit_event):
+def DecodingLoop(queue_data_received:Queue, quit_event):
     while True:
-        if quit_event.is_set(): #주의 : queue에  데이터가 남아 있어도 종료됨.
-            break
-
         try:
             recvData = queue_data_received.get()
             queue_data_received.task_done()
+            # queue get을 block하지 않고 timeout을 지정하면 쓰레드간의 병목 현상이 커져서 block했다..
+            # 따라서 queue를 이용해서 쓰레드를 동기화할 때는 queue안에 메세지를 넣어서 thread를 빠져나오도록 구현했다.
+            if recvData == b"#Disconnect#":
+                break
 
-            start_time = time.time()
             header_size = struct.unpack("<i", recvData[0:4])[0]
             bHeader = recvData[4:4 + header_size]
             header = json.loads(bHeader.decode())
             data_length = header['data_length']
-
+            start_time = header['timestamp']
             image_data = recvData[4 + header_size: 4 + header_size + data_length]
 
             # print(header_size)
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
             # print(data_length)
-            DecodingData(header, image_data)
-            time_to_process = time.time() - start_time
-            # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
+            #make_to_instance(header, image_data)
+            time_to_process = (time.time() - start_time) + np.finfo(float).eps
+            #print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
-        except Empty: #queue가 비어있을 때이지만, Queue.get()에 timeout을 주지 않았기 때문에 blocking되어서 Empty가 발생하지 않음.
+        except Empty:
+            # queue.get()을 block하지 않고 timeout을 지정한 상태에서, queue가 비면 Empty exception이 발생한다.
+            # 하지만 현재는 block하지 않으므로 사실상 아무 기능을 하지 않는다.
             continue
 
-def DecodingData(header, data):
+def make_to_instance(header, data):
     dataType = header['dataType']
-    data_length = header['data_length']
     timestamp = header['timestamp']
-    frameID = header['frameID']
-    img_compression = header['dataCompressionType']
-    jpgQuality = header['imageQulaity']
 
     if dataType == DataType.PV:
         width = header['width']
         height = header['height']
-        imageFormat = header['imageFormat']
+        dataFormat = header['dataFormat']
 
-        dim = GetDimension(imageFormat)
-        # if img_compression == ImageCompression.JPEG:
-        # encode_param=[int(cv2.IMWRITE_JPEG_QUALITY), jpgQuality]
-        # data = cv2.imdecode(data, encode_param)
-
+        dim = GetDimension(dataFormat)
         img_np = np.frombuffer(data, np.uint8).reshape((height, width, dim))
-        delay_time = time.time() - timestamp
+        # delay_time = time.time() - timestamp
         # print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
 
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
         # cv2.namedWindow("pvimage")
+
+        #pv_image = HoloLens2PVImageData(header, img_np)
+
         cv2.imshow("pvimage", img_np)
         cv2.waitKey(1)
         # print('Image with ts ' + str(timestamp) + ' is saved')
@@ -147,15 +142,15 @@ def recv_all(sock, n):
     return data
 
 
-def GetDimension(imgFormat: ImageFormat):
-    if imgFormat == ImageFormat.RGBA or imgFormat == ImageFormat.BGRA \
-            or imgFormat == ImageFormat.ARGB or imgFormat == ImageFormat.Float32:
+def GetDimension(dataFormat: DataFormat):
+    if dataFormat == DataFormat.RGBA or dataFormat == DataFormat.BGRA \
+            or dataFormat == DataFormat.ARGB or dataFormat == DataFormat.Float32:
         return 4
-    elif imgFormat == ImageFormat.RGB:
+    elif dataFormat == DataFormat.RGB:
         return 3
-    elif imgFormat == ImageFormat.U16:
+    elif dataFormat == DataFormat.U16:
         return 2
-    elif imgFormat == ImageFormat.U8:
+    elif dataFormat == DataFormat.U8:
         return 1
     else:
-        raise (Exception("Invalid ImageFormat Error."))
+        raise (Exception("Invalid DataFormat Error."))

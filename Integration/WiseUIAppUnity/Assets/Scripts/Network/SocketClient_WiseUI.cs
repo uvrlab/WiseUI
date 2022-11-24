@@ -72,20 +72,20 @@ public class SocketClient_WiseUI : SocketClient
 
         base.Send(buffer);
     }
-    ImageFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)
+    DataFormat ConvertTextureFormat2ImageFormat(TextureFormat textureFormat)
     {
         switch (textureFormat)
         {
             case TextureFormat.RGBA32:
-                return ImageFormat.RGBA;
+                return DataFormat.RGBA;
             case TextureFormat.BGRA32:
-                return ImageFormat.BGRA;
+                return DataFormat.BGRA;
             case TextureFormat.ARGB32:
-                return ImageFormat.ARGB;
+                return DataFormat.ARGB;
             case TextureFormat.RGB24:
-                return ImageFormat.RGB;
+                return DataFormat.RGB;
         }
-        return ImageFormat.INVALID;
+        return DataFormat.INVALID;
     }
   
     public override void Disconnect()

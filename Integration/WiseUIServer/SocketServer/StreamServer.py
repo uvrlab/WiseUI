@@ -5,7 +5,7 @@ from queue import Queue, Empty
 import os
 import logging
 
-from SocketServer.DataPackage import DataType, ImageFormat
+from SocketServer.DataPackage import DataType, DataFormat
 from SocketServer.static_functions import ReceiveLoop, DecodingLoop
 
 logger = logging.getLogger(__name__)
@@ -20,19 +20,19 @@ class ClientObject:
         self.thread_decode = None
         self.thread_process = None
 
-        self.latest_frame_data = None
+        self.latest_pv_image = None
         self.queue_frame_data= Queue()
         self.quit_event = threading.Event()
 
 
-    def GetLatestFrameData(self):
-        return self.latest_frame_data
-    def GetNextFrameData(self):
+    def get_latest_pv_frame(self):
+        return self.latest_pv_image
+    def get_next_pv_frame(self):
         try:
             data = self.queue_frame_data.get()
             self.queue_frame_data.task_done()
         except Empty:
-            data = None
+            raise Empty
 
         return data
     def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
@@ -53,8 +53,8 @@ class ClientObject:
         self.thread_process.start()
 
         self.thread_receive.join()
-        self.quit_event.set()
         self.thread_decode.join()
+        self.quit_event.set()
         self.thread_process.join()
 
 
