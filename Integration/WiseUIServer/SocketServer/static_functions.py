@@ -69,7 +69,7 @@ def receive_loop(sock, queue_data_received):
             # continue
 
 
-def depackage_loop(queue_data_received:Queue):
+def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
     while True:
         try:
             recvData = queue_data_received.get()
@@ -93,7 +93,10 @@ def depackage_loop(queue_data_received:Queue):
             dataType = header['dataType']
 
             if dataType == DataType.PV:
-                instance = HoloLens2PVImageData(header, raw_data)
+                pass
+                #instance = HoloLens2PVImageData(header, raw_data)
+                #instert_pv_frame_func(instance)
+
             elif dataType == DataType.Depth:
                 instance = HoloLens2DepthImageData(header, raw_data)
             elif dataType == DataType.PC:

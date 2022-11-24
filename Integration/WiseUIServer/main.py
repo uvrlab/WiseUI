@@ -12,8 +12,8 @@ def processing_loop(quit_event):
     while True:
         if quit_event.is_set():
             break
-
-        print("processing_loop")
+        time.sleep(10)
+        #print("processing_loop")
 
         # intrinsic = frame_info['intrinsic'] # is not implemented yet.
         # extrinsic = frame_info['extrinsic'] # is not implemented yet.

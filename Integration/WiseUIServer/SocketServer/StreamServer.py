@@ -15,6 +15,7 @@ class ClientObject:
     def __init__(self, socket, address):
         self.socket = socket
         self.address = address
+
         self.thread_receive = None
         self.thread_depackage = None
         self.thread_process = None
@@ -25,25 +26,47 @@ class ClientObject:
         self.queue_depth_frame = Queue()
         self.queue_pc_frame = Queue()
 
+        self.latest_pv_image = None
+        self.latest_depth_frame = None
+        self.latest_pc_frame = None
 
+        self.lock_pv_frame = threading.Lock()
+        self.lock_depth_frame = threading.Lock()
+        self.lock_pc_frame = threading.Lock()
+
+    def instert_pv_frame(self, frame):
+        self.lock_pv_frame.acquire()
+        self.latest_pv_image = frame
+        #self.queue_pv_frame.put(frame)
+        #self.queue_pv_frame.join()
+        self.lock_pv_frame.release()
 
     def get_latest_pv_frame(self):
-        return self.latest_pv_image
-    def get_next_pv_frame(self):
+        self.lock_pv_frame.acquire()
+        copied_frame = self.latest_pv_image.copy()
+        self.lock_pc_frame.release()
+
+        return copied_frame
+
+    def get_oldest_pv_frame(self):
         try:
+            self.lock_pv_frame.acquire()
             data = self.queue_frame_data.get()
             self.queue_frame_data.task_done()
+            copied_frame = data.copy()
+            self.lock_pv_frame.release()
+
         except Empty:
             raise Empty
 
-        return data
+        return copied_frame
     def start_listening(self, processing_loop, disconnect_callback):
         thread_start = threading.Thread(target=self.listening, args=(processing_loop, disconnect_callback))
         thread_start.start()
 
     def listening(self, processing_loop, disconnect_callback):
         self.thread_receive = threading.Thread(target=receive_loop, args=(self.socket, self.queue_received_data,))
-        self.thread_depackage = threading.Thread(target=depackage_loop, args=(self.queue_received_data,))
+        self.thread_depackage = threading.Thread(target=depackage_loop, args=(self.queue_received_data, self.instert_pv_frame))
         self.thread_process = threading.Thread(target=processing_loop, args=(self.quit_event,))
 
         self.thread_receive.daemon = True
@@ -58,7 +81,6 @@ class ClientObject:
         self.thread_depackage.join()
         self.quit_event.set()
         self.thread_process.join()
-
 
         disconnect_callback(self)
 
