@@ -8,12 +8,12 @@ import cv2
 
 #track_hand = HandTracker()
 
-def ProcessCallBack(quit_event):
+def processing_loop(quit_event):
     while True:
         if quit_event.is_set():
             break
 
-        print("ProcessCallBack")
+        print("processing_loop")
 
         # intrinsic = frame_info['intrinsic'] # is not implemented yet.
         # extrinsic = frame_info['extrinsic'] # is not implemented yet.
@@ -31,9 +31,9 @@ def ProcessCallBack(quit_event):
         #
         # """ Packing data for sending to hololens """
         # resultData = dict()
-        # resultData['frameInfo'] = EncodeFrameInfo(frame_info)
-        # resultData['objectDataPackage'] = EndcodeObjectDataPackage(result_object)
-        # resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
+        # resultData['frameInfo'] = encode_frame_info(frame_info)
+        # resultData['objectDataPackage'] = encode_object_data(result_object)
+        # resultData['handDataPackage'] = encode_hand_data(result_hand)
         #
         # """ Send data """
         # resultBytes = json.dumps(resultData).encode('utf-8')
@@ -41,14 +41,14 @@ def ProcessCallBack(quit_event):
         # print("bytes of result : {}".format(len(resultBytes)))
         # client_socket.send(resultBytes)
 
-def EncodeFrameInfo(frame_info):
+def encode_frame_info(frame_info):
     frameInfo = dict()
     frameInfo['frameID'] = frame_info['frameID']
     frameInfo['timestamp_sentFromClient'] = frame_info['timestamp'] # 홀로렌즈에서 이미지를 보낸시간
     frameInfo['timestamp_sentFromServer'] = float(time.time()) # 서버에서 홀로렌즈로 처리 결과를 보낸 시간
     return frameInfo
 
-def EncodeHandDataPackage(hand_result):
+def encode_hand_data(hand_result):
     """ Encode hand data to json format """
 
     """ Example """
@@ -66,7 +66,7 @@ def EncodeHandDataPackage(hand_result):
 
     return handDataPackage
 
-def EndcodeObjectDataPackage(object_result):
+def encode_object_data(object_result):
     """ Example """
     num_obj = 3
     #objectDataPackage = ObjectDataPackage()
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     server = StreamServer()
 
-    server.Listening('', 9091, ProcessCallBack)
+    server.listening('', 9091, processing_loop)
 
     #processing thread 시작
 

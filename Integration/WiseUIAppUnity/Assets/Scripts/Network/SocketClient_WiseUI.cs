@@ -23,7 +23,7 @@ public class SocketClient_WiseUI : SocketClient
         header.width = texture.width;
         header.height = texture.height;
         header.dataType = DataType.PV;
-        header.imageFormat = ConvertTextureFormat2ImageFormat(texture.format);
+        header.dataFormat = ConvertTextureFormat2ImageFormat(texture.format);
         header.timestamp = span.TotalSeconds;
         header.dataCompressionType = comp;
         header.imageQulaity = jpgQuality;

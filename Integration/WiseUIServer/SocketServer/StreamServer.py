@@ -6,7 +6,7 @@ import os
 import logging
 
 from SocketServer.DataPackage import DataType, DataFormat
-from SocketServer.static_functions import ReceiveLoop, DecodingLoop
+from SocketServer.static_functions import receive_loop, depackage_loop
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +15,16 @@ class ClientObject:
     def __init__(self, socket, address):
         self.socket = socket
         self.address = address
-        self.queue_data_receive = Queue()
         self.thread_receive = None
-        self.thread_decode = None
+        self.thread_depackage = None
         self.thread_process = None
-
-        self.latest_pv_image = None
-        self.queue_frame_data= Queue()
         self.quit_event = threading.Event()
+
+        self.queue_received_data = Queue()
+        self.queue_pv_frame = Queue()
+        self.queue_depth_frame = Queue()
+        self.queue_pc_frame = Queue()
+
 
 
     def get_latest_pv_frame(self):
@@ -35,30 +37,30 @@ class ClientObject:
             raise Empty
 
         return data
-    def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
-        thread_start = threading.Thread(target=self.Listening, args=(ProcessCallBack, DisconnectCallbackFunc))
+    def start_listening(self, processing_loop, disconnect_callback):
+        thread_start = threading.Thread(target=self.listening, args=(processing_loop, disconnect_callback))
         thread_start.start()
 
-    def Listening(self, ProcessCallBackFunc, DisconnectCallbackFunc):
-        self.thread_receive = threading.Thread(target=ReceiveLoop, args=(self.socket, self.queue_data_receive,))
-        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,self.quit_event,))
-        self.thread_process = threading.Thread(target=ProcessCallBackFunc, args=(self.quit_event,))
+    def listening(self, processing_loop, disconnect_callback):
+        self.thread_receive = threading.Thread(target=receive_loop, args=(self.socket, self.queue_received_data,))
+        self.thread_depackage = threading.Thread(target=depackage_loop, args=(self.queue_received_data,))
+        self.thread_process = threading.Thread(target=processing_loop, args=(self.quit_event,))
 
         self.thread_receive.daemon = True
-        self.thread_decode.daemon = True
+        self.thread_depackage.daemon = True
         self.thread_process.daemon = True
 
         self.thread_receive.start()
-        self.thread_decode.start()
+        self.thread_depackage.start()
         self.thread_process.start()
 
         self.thread_receive.join()
-        self.thread_decode.join()
+        self.thread_depackage.join()
         self.quit_event.set()
         self.thread_process.join()
 
 
-        DisconnectCallbackFunc(self)
+        disconnect_callback(self)
 
 
 class StreamServer:
@@ -66,7 +68,7 @@ class StreamServer:
         self.save_folder = 'data/'
         self.list_client = []
 
-    def Listening(self, serverHost, serverPort, ProcessCallBack):
+    def listening(self, serverHost, serverPort, processing_loop):
         if not os.path.isdir(self.save_folder):
             os.mkdir(self.save_folder)
 
@@ -94,7 +96,7 @@ class StreamServer:
 
                 clientObject = ClientObject(sock, addr)
                 self.list_client.append(clientObject)
-                clientObject.StartListeningClient(ProcessCallBack, self.DisconnectCallback)
+                clientObject.start_listening(processing_loop, self.disconnect_callback)
                 print("current clients : {}".format(len(self.list_client)))
 
             except KeyboardInterrupt as e:
@@ -103,6 +105,6 @@ class StreamServer:
             except Exception:
                 pass
 
-    def DisconnectCallback(self, clientObj):
+    def disconnect_callback(self, clientObj):
         print('Disconnected with ' + clientObj.address[0] + ':' + str(clientObj.address[1]))
         self.list_client.remove(clientObj)

@@ -40,7 +40,7 @@ public class RGBImageHeader
     public double timestamp = -1;
     public DataType dataType;
     public ImageCompression dataCompressionType = ImageCompression.None;
-    public DataFormat imageFormat = DataFormat.INVALID;
+    public DataFormat dataFormat = DataFormat.INVALID;
     public int imageQulaity = 100;
     public long data_length;
     public int width;
