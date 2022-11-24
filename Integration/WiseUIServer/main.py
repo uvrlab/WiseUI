@@ -32,8 +32,7 @@ def ProcessCallBack(frame_info, rgb_image, client_socket):
 
     """ Send data """
     resultBytes = json.dumps(resultData).encode('utf-8')
-    print(resultBytes)
-    print("bytes of result : {}".format(len(resultBytes)))
+    #print("bytes of result : {}".format(len(resultBytes)))
     client_socket.send(resultBytes)
 
 def EncodeFrameInfo(frame_info):

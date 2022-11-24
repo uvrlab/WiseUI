@@ -19,11 +19,12 @@ public class SocketCommTest
 {
     SocketClient_WiseUI[] clients;
     int port = 9091;
-    int num_client = 5;
+    int num_client = 3;
+    int num_sendData = 10;
     int countReceive;
     //SocketServer server = new SocketServer();
 
-    static readonly float time_benchmark1;
+    static readonly double time_benchmark1 = 0.585009551048279;
 
     List<byte[]> list_received_buffer = new List<byte[]>();
     readonly object lock_object = new object();
@@ -54,12 +55,17 @@ public class SocketCommTest
         for (int i = 0; i < clients.Length; i++)
         {
             Assert.IsTrue(clients[i].isConnected);
-            clients[i].SendRGBImage(i, new Texture2D(640, 360, TextureFormat.RGB24, false), ImageCompression.None);
-            //Thread.Sleep(10);
+            for (int j = 0; j < num_sendData; j++)
+            {
+                clients[i].SendRGBImage(i, new Texture2D(640, 360, TextureFormat.BGRA32, false), ImageCompression.None);
+                Thread.Sleep(30);
+            }
+
         }
+
         int waiting_time = 2000;
         Thread.Sleep(waiting_time); //wating to receive
-        Assert.AreEqual(num_client, list_received_buffer.Count);
+        Assert.AreEqual(num_client * num_sendData, list_received_buffer.Count);
 
         // check time.
         var packages = list_received_buffer.Select(x => ConvertToJson(x)).ToList();
