@@ -52,7 +52,7 @@ public class SocketCommTest
             clients[i].SendRGBImage(i, new Texture2D(320, 240, TextureFormat.RGB24, false), ImageCompression.None);
             Thread.Sleep(10);
         }
-        Thread.Sleep(10000);
+        Thread.Sleep(100);
         Assert.AreEqual(num_client, list_received_buffer.Count);
 
         foreach (var buffer in list_received_buffer)
