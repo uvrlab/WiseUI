@@ -70,7 +70,7 @@ def ReceiveLoop(sock, queue_data_received):
 
 def DecodingLoop(queue_data_received, quit_event):
     while True:
-        if quit_event.is_set():
+        if quit_event.is_set(): #주의 : queue에  데이터가 남아 있어도 종료됨.
             break
 
         try:
@@ -92,7 +92,8 @@ def DecodingLoop(queue_data_received, quit_event):
             DecodingData(header, image_data)
             time_to_process = time.time() - start_time
             # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
-        except Empty:
+
+        except Empty: #queue가 비어있을 때이지만, Queue.get()에 timeout을 주지 않았기 때문에 blocking되어서 Empty가 발생하지 않음.
             continue
 
 def DecodingData(header, data):

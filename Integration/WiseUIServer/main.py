@@ -8,33 +8,38 @@ import cv2
 
 #track_hand = HandTracker()
 
-def ProcessCallBack(frame_info, rgb_image, client_socket):
-    # intrinsic = frame_info['intrinsic'] # is not implemented yet.
-    # extrinsic = frame_info['extrinsic'] # is not implemented yet.
+def ProcessCallBack(quit_event):
+    while True:
+        if quit_event.is_set():
+            break
 
-    # server.Get()
-    # data = server.GetLatestData()
-    # data['frame_info']
-    # data['rgb_image']
-    # socket = server.GetSocket()
+        print("ProcessCallBack")
 
+        # intrinsic = frame_info['intrinsic'] # is not implemented yet.
+        # extrinsic = frame_info['extrinsic'] # is not implemented yet.
 
-    cv2.imshow("pv", rgb_image)
-    cv2.waitKey(1)
-    result_object = None #track_object.Process(rgb_image)
-    result_hand =  None #track_hand.Process(rgb_image)
+        # server.Get()
+        # data = server.GetLatestData()
+        # data['frame_info']
+        # data['rgb_image']
+        # socket = server.GetSocket()
 
-    """ Packing data for sending to hololens """
-    resultData = dict()
-    resultData['frameInfo'] = EncodeFrameInfo(frame_info)
-    resultData['objectDataPackage'] = EndcodeObjectDataPackage(result_object)
-    resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
-
-    """ Send data """
-    resultBytes = json.dumps(resultData).encode('utf-8')
-    print(resultBytes)
-    print("bytes of result : {}".format(len(resultBytes)))
-    client_socket.send(resultBytes)
+        # cv2.imshow("pv", rgb_image)
+        # cv2.waitKey(1)
+        # result_object = None #track_object.Process(rgb_image)
+        # result_hand =  None #track_hand.Process(rgb_image)
+        #
+        # """ Packing data for sending to hololens """
+        # resultData = dict()
+        # resultData['frameInfo'] = EncodeFrameInfo(frame_info)
+        # resultData['objectDataPackage'] = EndcodeObjectDataPackage(result_object)
+        # resultData['handDataPackage'] = EncodeHandDataPackage(result_hand)
+        #
+        # """ Send data """
+        # resultBytes = json.dumps(resultData).encode('utf-8')
+        # print(resultBytes)
+        # print("bytes of result : {}".format(len(resultBytes)))
+        # client_socket.send(resultBytes)
 
 def EncodeFrameInfo(frame_info):
     frameInfo = dict()

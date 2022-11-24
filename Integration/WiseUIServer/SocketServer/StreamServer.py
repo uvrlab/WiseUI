@@ -24,33 +24,39 @@ class ClientObject:
         self.queue_frame_data= Queue()
         self.quit_event = threading.Event()
 
+
+    def GetLatestFrameData(self):
+        return self.latest_frame_data
+    def GetNextFrameData(self):
+        try:
+            data = self.queue_frame_data.get()
+            self.queue_frame_data.task_done()
+        except Empty:
+            data = None
+
+        return data
     def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
         thread_start = threading.Thread(target=self.Listening, args=(ProcessCallBack, DisconnectCallbackFunc))
         thread_start.start()
 
     def Listening(self, ProcessCallBackFunc, DisconnectCallbackFunc):
-        self.thread_receive = threading.Thread(target=ReceiveLoop, args=(self.socket, self.queue_data_receive))
-        # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
-
-        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,self.quit_event))
-
-        #self.thread_process = threading.Thread(target=ProcessCallBackFunc, args=(self,))
+        self.thread_receive = threading.Thread(target=ReceiveLoop, args=(self.socket, self.queue_data_receive,))
+        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,self.quit_event,))
+        self.thread_process = threading.Thread(target=ProcessCallBackFunc, args=(self.quit_event,))
 
         self.thread_receive.daemon = True
         self.thread_decode.daemon = True
-        #self.thread_process = True
+        self.thread_process.daemon = True
 
         self.thread_receive.start()
         self.thread_decode.start()
-        #self.thread_process.start()
+        self.thread_process.start()
 
         self.thread_receive.join()
-
         self.quit_event.set()
         self.thread_decode.join()
-        #self.thread_process.join()
-        # thread_send.join()
-        # self.thread_decode.join()
+        self.thread_process.join()
+
 
         DisconnectCallbackFunc(self)
 

@@ -25,14 +25,19 @@ class ImageFormat:
     Float32 = 7
 
 
-class HoloLens2PVImageData:
+class HoloLens2SensorData:
     def __init__(self, header, image):
         self.frameID = header['frameID']
         self.Intrinsic = np.zeros((3, 3))
         self.Extrinsic = np.zeros((4, 4))
-        self.dataCompressionType = header['dataCompressionType']
-        self.imageQulaity = header['imageQulaity']
+
         self.width = header['width']
         self.height = header['height']
         self.imageFormat = header['imageFormat']
         self.image = image
+
+        # not used
+        self.dataCompressionType = header['dataCompressionType']
+        # not used
+        self.imageQulaity = header['imageQulaity']
+
