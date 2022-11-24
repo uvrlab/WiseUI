@@ -20,7 +20,9 @@ class ClientObject:
         self.thread_decode = None
         self.thread_process = None
 
-        self.latestInputData = None
+        self.latest_frame_data = None
+        self.queue_frame_data= Queue()
+        self.quit_event = threading.Event()
 
     def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
         thread_start = threading.Thread(target=self.Listening, args=(ProcessCallBack, DisconnectCallbackFunc))
@@ -30,22 +32,24 @@ class ClientObject:
         self.thread_receive = threading.Thread(target=ReceiveLoop, args=(self.socket, self.queue_data_receive))
         # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
 
-        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,))
+        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,self.quit_event))
 
-        # thread_process = threading.Thread(target=ProcessCallBack,
-        #                                   args=(sock, queue_data_received, queue_data_send, ProcessCallBack))
+        #self.thread_process = threading.Thread(target=ProcessCallBackFunc, args=(self,))
 
         self.thread_receive.daemon = True
         self.thread_decode.daemon = True
-        # self.thread_process = True
+        #self.thread_process = True
 
         self.thread_receive.start()
         self.thread_decode.start()
-        # self.thread_process.start()
+        #self.thread_process.start()
 
         self.thread_receive.join()
+
+        self.quit_event.set()
         self.thread_decode.join()
-        # # thread_send.join()
+        #self.thread_process.join()
+        # thread_send.join()
         # self.thread_decode.join()
 
         DisconnectCallbackFunc(self)

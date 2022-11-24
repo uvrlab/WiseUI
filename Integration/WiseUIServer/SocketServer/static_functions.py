@@ -43,15 +43,16 @@ def ReceiveLoop(sock, queue_data_received):
             # is_socket_closed(sock)
             recvData = recv_msg(sock)  # buffer size를 고정하지 않고 첫 4 byte에 기록된 buffer size 만큼 이어서 받는다.
             # print(recvData)
-
             if recvData is None:
                 continue
+
+            if recvData == b"#Disconnect#":
+                break
 
             queue_data_received.put(recvData)
             queue_data_received.join()
 
-            if recvData == b"#Disconnect#":
-                break
+
             time_to_receive = time.time() - start_time
             # print('Time to receive data : {}, {} fps'.format(time_to_receive, 1 / (time_to_receive + np.finfo(float).eps)))
 
@@ -67,14 +68,14 @@ def ReceiveLoop(sock, queue_data_received):
             # continue
 
 
-def DecodingLoop(queue_data_received):
+def DecodingLoop(queue_data_received, quit_event):
     while True:
+        if quit_event.is_set():
+            break
+
         try:
             recvData = queue_data_received.get()
             queue_data_received.task_done()
-
-            if recvData == b"#Disconnect#":
-                break
 
             start_time = time.time()
             header_size = struct.unpack("<i", recvData[0:4])[0]
@@ -91,15 +92,8 @@ def DecodingLoop(queue_data_received):
             DecodingData(header, image_data)
             time_to_process = time.time() - start_time
             # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
-
         except Empty:
-            # queue_data_received.task_done()
             continue
-            # print("DecodingLoop break")
-            # if event.is_set():
-            # print("DecodingLoop break")
-            # break
-
 
 def DecodingData(header, data):
     dataType = header['dataType']
