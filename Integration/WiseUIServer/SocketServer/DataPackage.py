@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class DataType:
     PV = 1
     Depth = 2
@@ -22,3 +25,14 @@ class ImageFormat:
     Float32 = 7
 
 
+class HoloLens2PVImageData:
+    def __init__(self, header, image):
+        self.frameID = header['frameID']
+        self.Intrinsic = np.zeros((3, 3))
+        self.Extrinsic = np.zeros((4, 4))
+        self.dataCompressionType = header['dataCompressionType']
+        self.imageQulaity = header['imageQulaity']
+        self.width = header['width']
+        self.height = header['height']
+        self.imageFormat = header['imageFormat']
+        self.image = image

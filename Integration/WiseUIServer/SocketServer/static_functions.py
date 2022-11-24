@@ -2,6 +2,7 @@ import socket
 import json
 from queue import Empty
 
+import cv2
 import numpy as np
 import time
 import struct
@@ -34,7 +35,7 @@ def SendLoop(sock, queue_data_to_send):
             break
 
 
-def ReceiveLoop(sock, queue_data_received, queue_data_send):
+def ReceiveLoop(sock, queue_data_received):
     while True:
         try:
             start_time = time.time()
@@ -66,7 +67,7 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             # continue
 
 
-def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
+def DecodingLoop(queue_data_received):
     while True:
         try:
             recvData = queue_data_received.get()
@@ -87,7 +88,7 @@ def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
             # print(data_length)
-            DecodingData(socket, header, image_data, ProcessCallBack, queue_data_send)
+            DecodingData(header, image_data)
             time_to_process = time.time() - start_time
             # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
@@ -100,7 +101,7 @@ def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
             # break
 
 
-def DecodingData(socket, header, data, ProcessCallBack, queue_data_send):
+def DecodingData(header, data):
     dataType = header['dataType']
     data_length = header['data_length']
     timestamp = header['timestamp']
@@ -114,7 +115,6 @@ def DecodingData(socket, header, data, ProcessCallBack, queue_data_send):
         imageFormat = header['imageFormat']
 
         dim = GetDimension(imageFormat)
-
         # if img_compression == ImageCompression.JPEG:
         # encode_param=[int(cv2.IMWRITE_JPEG_QUALITY), jpgQuality]
         # data = cv2.imdecode(data, encode_param)
@@ -123,11 +123,10 @@ def DecodingData(socket, header, data, ProcessCallBack, queue_data_send):
         delay_time = time.time() - timestamp
         # print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
 
-        ProcessCallBack(header, img_np, socket)
         # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
         # cv2.namedWindow("pvimage")
-        # cv2.imshow("pvimage", img_np)
-        # cv2.waitKey(1)
+        cv2.imshow("pvimage", img_np)
+        cv2.waitKey(1)
         # print('Image with ts ' + str(timestamp) + ' is saved')
 
 

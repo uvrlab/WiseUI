@@ -15,7 +15,7 @@ using UnityEngine;
 /// </summary>
 public class SocketCommTest 
 {
-    
+    SocketClient_WiseUI[] clients;
     int port = 9091;
     int num_client = 10;
     int countReceive;
@@ -27,21 +27,7 @@ public class SocketCommTest
     [SetUp]
     public void SetUp()
     {
-        //server open
-        //server.Open(port, 64);
-        //Thread.Sleep(100);
-    }
-    [TearDown]
-    public void TearDown()
-    {
-        //server.Close();
-    }
-
-    [Test]
-    public void CommunicationTest()
-    {
-        
-        SocketClient_WiseUI[] clients = new SocketClient_WiseUI[num_client];
+        clients = new SocketClient_WiseUI[num_client];
         for (int i = 0; i < clients.Length; i++)
         {
             clients[i] = new SocketClient_WiseUI();
@@ -49,9 +35,23 @@ public class SocketCommTest
             clients[i].BeginReceive(OnDataReceive, 4096);
             Thread.Sleep(10);
         }
-
+    }
+    [TearDown]
+    public void TearDown()
+    {
         for (int i = 0; i < clients.Length; i++)
         {
+            clients[i].Disconnect();
+            Thread.Sleep(10);
+        }
+    }
+
+    [Test]
+    public void CommunicationTest()
+    {
+        for (int i = 0; i < clients.Length; i++)
+        {
+            Assert.IsTrue(clients[i].isConnected);
             clients[i].SendRGBImage(i, new Texture2D(320, 240, TextureFormat.RGB24, false), ImageCompression.None);
             Thread.Sleep(10);
         }
@@ -66,13 +66,6 @@ public class SocketCommTest
             Assert.IsNotNull(package.handDataPackage);
             Assert.IsNotNull(package.objectDataPackage);
             Assert.AreEqual(21, package.handDataPackage.joints.Count);
-        }
-      
-
-        for (int i = 0; i < clients.Length; i++)
-        {
-            clients[i].Disconnect();
-            Thread.Sleep(10);
         }
     }
     [Test]

@@ -16,23 +16,21 @@ class ClientObject:
         self.socket = socket
         self.address = address
         self.queue_data_receive = Queue()
-        self.queue_data_send = Queue()
         self.thread_receive = None
         self.thread_decode = None
         self.thread_process = None
+
+        self.latestInputData = None
 
     def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
         thread_start = threading.Thread(target=self.Listening, args=(ProcessCallBack, DisconnectCallbackFunc))
         thread_start.start()
 
     def Listening(self, ProcessCallBackFunc, DisconnectCallbackFunc):
-        self.thread_receive = threading.Thread(target=ReceiveLoop
-                                               , args=(self.socket, self.queue_data_receive, self.queue_data_receive))
+        self.thread_receive = threading.Thread(target=ReceiveLoop, args=(self.socket, self.queue_data_receive))
         # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
 
-        self.thread_decode = threading.Thread(target=DecodingLoop,
-                                              args=(self.socket, self.queue_data_receive, self.queue_data_receive,
-                                                    ProcessCallBackFunc))
+        self.thread_decode = threading.Thread(target=DecodingLoop, args=(self.queue_data_receive,))
 
         # thread_process = threading.Thread(target=ProcessCallBack,
         #                                   args=(sock, queue_data_received, queue_data_send, ProcessCallBack))

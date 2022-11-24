@@ -6,6 +6,14 @@ using System.Text;
 using TreeEditor;
 using UnityEngine;
 
+public class NoDataReceivedExecption : Exception
+{
+    public NoDataReceivedExecption(string message) : base(message)
+    {
+
+    }
+    
+}
 public class SocketClientManager : MonoBehaviour
 {
     readonly SocketClient client = new SocketClient_WiseUI();
@@ -27,14 +35,6 @@ public class SocketClientManager : MonoBehaviour
                 return isNewHandDataReceived;
             }
         }
-        set
-        {
-            lock (lock_object)
-            {
-                isNewHandDataReceived = value;
-            }
-        }
-    
     }
     public bool IsNewObjectDataReceived
     {
@@ -43,13 +43,6 @@ public class SocketClientManager : MonoBehaviour
             lock (lock_object)
             {
                 return isNewObjectDataReceived;
-            }
-        }
-        set
-        {
-            lock (lock_object)
-            {
-                isNewObjectDataReceived = value;
             }
         }
     }
@@ -109,7 +102,15 @@ public class SocketClientManager : MonoBehaviour
     {
         lock (lock_object)
         {
-            resultDataPackage = latestResultData; // deep copy 필요함.(현재 shallow copy)
+            if (isNewHandDataReceived)
+            {
+                resultDataPackage = latestResultData;
+                isNewHandDataReceived = false;
+            }
+            else
+            {
+                throw new NoDataReceivedExecption("No new data received.");
+            }
         }
     }
 
@@ -125,7 +126,7 @@ public class SocketClientManager : MonoBehaviour
             }
             else
             {
-                throw new Exception("There is no next frame data.");
+                throw new NoDataReceivedExecption("No new data received.");
             }
         }
     }
