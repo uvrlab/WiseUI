@@ -13,6 +13,7 @@ import cv2
 def processing_loop(client_obj):
     while True:
         if client_obj.quit_event.is_set():
+            # 주의: quit_event가 set되면, 아직 처리하지 않은 frame이 있어도 종료된다.
             break
         try:
             pv_frame : HoloLens2PVImageData = client_obj.get_latest_pv_frame() # 프레임 손실, delay 적음

@@ -22,9 +22,9 @@ class ClientObject:
         self.quit_event = threading.Event()
 
         self.queue_received_data = Queue()
-        self.queue_pv_frame = deque()
-        self.queue_depth_frame = deque()
-        self.queue_pc_frame = deque()
+        self.deque_pv_frame = deque()
+        self.deque_depth_frame = deque()
+        self.deque_pc_frame = deque()
 
         self.latest_pv_image = None
         self.latest_depth_frame = None
@@ -41,16 +41,16 @@ class ClientObject:
     def instert_pv_frame(self, frame):
         #self.lock_pv_frame.acquire()
         #self.latest_pv_image = frame
-        self.queue_pv_frame.append(frame)
-        #self.queue_pv_frame.join()
+        self.deque_pv_frame.append(frame)
+        #self.deque_pv_frame.join()
         #self.is_new_pv_frame = True
         #self.lock_pv_frame.release()
 
     def get_latest_pv_frame(self):
         #self.lock_pv_frame.acquire()
         #frame = self.latest_pv_image
-        frame = self.queue_pv_frame.pop()
-        #self.queue_pv_frame.task_done()
+        frame = self.deque_pv_frame.pop()
+        #self.deque_pv_frame.task_done()
         #self.lock_pv_frame.release()
         #self.is_new_pv_frame = False
         return frame
@@ -58,7 +58,7 @@ class ClientObject:
 
     def get_oldest_pv_frame(self):
         #self.lock_pv_frame.acquire()
-        frame = self.queue_pv_frame.popleft()
+        frame = self.deque_pv_frame.popleft()
         return frame
     def start_listening(self, processing_loop, disconnect_callback):
         thread_start = threading.Thread(target=self.listening, args=(processing_loop, disconnect_callback))
