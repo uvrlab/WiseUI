@@ -19,10 +19,10 @@ public class TrackHand : MonoBehaviour
         {
             ResultDataPackage frameData;
             // 1. 가장 최신 데이터를 가져오는 방법.(누락된 frame 생길 수 있지만 delay 없음.)
-            tcpClientManager.GetLatestFrameData(out frameData);
+            tcpClientManager.GetLatestResultData(out frameData);
             
             // 2. 도착한 순서대로 데이터를 가져오는 방법. (delay 생길 수 있지만 누락된 frame 없음.)
-            //tcpClientManager.GetNextFrameData(out frameData);
+            //tcpClientManager.GetOldestResultData(out frameData);
             var frameInfo = frameData.frameInfo;
             var handData = frameData.handDataPackage;
 

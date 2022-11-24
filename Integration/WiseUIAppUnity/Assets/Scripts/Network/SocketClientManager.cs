@@ -98,7 +98,7 @@ public class SocketClientManager : MonoBehaviour
 
     }
 
-    public void GetLatestFrameData(out ResultDataPackage resultDataPackage)
+    public void GetLatestResultData(out ResultDataPackage resultDataPackage)
     {
         lock (lock_object)
         {
@@ -115,7 +115,7 @@ public class SocketClientManager : MonoBehaviour
     }
 
 
-    public void GetNextFrameData(out ResultDataPackage resultDataPackage)
+    public void GetOldestResultData(out ResultDataPackage resultDataPackage)
     {
         lock (lock_object)
         {
