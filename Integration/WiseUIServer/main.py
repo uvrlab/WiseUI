@@ -1,7 +1,7 @@
 import json
 import time
 
-from SocketServer.DataPackage import HoloLens2PVImageData, HoloLens2SensorData
+from SocketServer.type_definitions import HoloLens2PVImageData, HoloLens2SensorData
 from SocketServer.StreamServer import StreamServer
 #from handtracker.module_SARTE import HandTracker
 # import track_object
@@ -15,26 +15,17 @@ def processing_loop(client_obj):
         if client_obj.quit_event.is_set():
             break
         try:
-            pv_frame:HoloLens2SensorData = client_obj.get_latest_pv_frame() # 프레임 손실, delay 적음
+            pv_frame : HoloLens2PVImageData = client_obj.get_latest_pv_frame() # 프레임 손실, delay 적음
             # pv_frame:HoloLens2SensorData = client_obj.get_oldest_pv_frame()  # 프레임 무손실, delay 더 큼
+            # print(pv_frame.frameID)
 
-            rgb_image = pv_frame.data
-            #print(pv_frame.frameID)
+            # intrinsic = pv_frame.intrinsic
+            # extrinsic = pv_frame.extrinsic
 
-            #print("processing_loop")
-            # intrinsic = frame_info['intrinsic'] # is not implemented yet.
-            # extrinsic = frame_info['extrinsic'] # is not implemented yet.
-
-            # server.Get()
-            # data = server.GetLatestData()
-            # data['frame_info']
-            # data['rgb_image']
-            # socket = server.GetSocket()
-
-            cv2.imshow("pv", rgb_image)
+            cv2.imshow("pv", pv_frame.data)
             cv2.waitKey(1)
 
-            result_object = None #track_object.Process(rgb_image)
+            result_object = None #track_object.Process(pv_frame.data)
             result_hand = None #track_hand.Process(rgb_image)
 
             """ Packing data for sending to hololens """
@@ -45,13 +36,13 @@ def processing_loop(client_obj):
 
             """ Send data """
             resultBytes = json.dumps(resultData).encode('utf-8')
-            print(resultBytes)
-            print("bytes of result : {}".format(len(resultBytes)))
+            # print("bytes of total : {}".format(len(resultBytes)))
             client_obj.socket.send(resultBytes)
+            #time.sleep(0.1) # 10Hz, 테스트용 처리시간.
 
-        except Exception as e:
+        except IndexError as e:
+            # empty deque
             pass
-            #print(e)
 
 
 def encode_hand_data(hand_result):
@@ -75,7 +66,6 @@ def encode_hand_data(hand_result):
 def encode_object_data(object_result):
     """ Example """
     num_obj = 3
-    #objectDataPackage = ObjectDataPackage()
     objectDataPackage = dict()
 
     objects = list()

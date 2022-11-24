@@ -6,7 +6,7 @@ from queue import Queue, Empty
 import os
 import logging
 
-from SocketServer.DataPackage import DataType, DataFormat
+from SocketServer.type_definitions import DataType, DataFormat
 from SocketServer.static_functions import receive_loop, depackage_loop
 
 logger = logging.getLogger(__name__)
@@ -47,27 +47,19 @@ class ClientObject:
         #self.lock_pv_frame.release()
 
     def get_latest_pv_frame(self):
-        try:
-            #self.lock_pv_frame.acquire()
-            #frame = self.latest_pv_image
-            frame = self.queue_pv_frame.pop()
-            #self.queue_pv_frame.task_done()
-            #self.lock_pv_frame.release()
-            #self.is_new_pv_frame = False
-            return frame
-        except Exception:
-            raise Exception("No new frame")
+        #self.lock_pv_frame.acquire()
+        #frame = self.latest_pv_image
+        frame = self.queue_pv_frame.pop()
+        #self.queue_pv_frame.task_done()
+        #self.lock_pv_frame.release()
+        #self.is_new_pv_frame = False
+        return frame
+
 
     def get_oldest_pv_frame(self):
-        try:
-            #self.lock_pv_frame.acquire()
-            frame = self.queue_pv_frame.popleft()
-            return frame
-
-        except Exception:
-            raise Exception("No new frame")
-
-        return copied_frame
+        #self.lock_pv_frame.acquire()
+        frame = self.queue_pv_frame.popleft()
+        return frame
     def start_listening(self, processing_loop, disconnect_callback):
         thread_start = threading.Thread(target=self.listening, args=(processing_loop, disconnect_callback))
         thread_start.start()
@@ -138,3 +130,4 @@ class StreamServer:
     def disconnect_callback(self, clientObj):
         print('Disconnected with ' + clientObj.address[0] + ':' + str(clientObj.address[1]))
         self.list_client.remove(clientObj)
+

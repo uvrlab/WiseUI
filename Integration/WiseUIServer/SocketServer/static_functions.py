@@ -7,7 +7,7 @@ import numpy as np
 import time
 import struct
 
-from SocketServer.DataPackage import DataFormat, DataType, HoloLens2PVImageData, HoloLens2DepthImageData, \
+from SocketServer.type_definitions import DataFormat, DataType, HoloLens2PVImageData, HoloLens2DepthImageData, \
     HoloLens2PointCloudData
 
 """

@@ -2,11 +2,13 @@ using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using UnityEditor.MemoryProfiler;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.TextCore;
 
 
 /// <summary>
@@ -17,9 +19,11 @@ public class SocketCommTest
 {
     SocketClient_WiseUI[] clients;
     int port = 9091;
-    int num_client = 10;
+    int num_client = 5;
     int countReceive;
     //SocketServer server = new SocketServer();
+
+    static readonly float time_benchmark1;
 
     List<byte[]> list_received_buffer = new List<byte[]>();
     readonly object lock_object = new object();
@@ -33,8 +37,9 @@ public class SocketCommTest
             clients[i] = new SocketClient_WiseUI();
             clients[i].Connect("127.0.0.1", port);
             clients[i].BeginReceive(OnDataReceive, 4096);
-            Thread.Sleep(10);
+            
         }
+        Thread.Sleep(100);
     }
     [TearDown]
     public void TearDown()
@@ -49,22 +54,38 @@ public class SocketCommTest
         for (int i = 0; i < clients.Length; i++)
         {
             Assert.IsTrue(clients[i].isConnected);
-            clients[i].SendRGBImage(i, new Texture2D(320, 240, TextureFormat.RGB24, false), ImageCompression.None);
-            Thread.Sleep(10);
+            clients[i].SendRGBImage(i, new Texture2D(640, 360, TextureFormat.RGB24, false), ImageCompression.None);
+            //Thread.Sleep(10);
         }
-        Thread.Sleep(2000); //wating to receive
+        int waiting_time = 2000;
+        Thread.Sleep(waiting_time); //wating to receive
         Assert.AreEqual(num_client, list_received_buffer.Count);
 
-        foreach (var buffer in list_received_buffer)
-        {
-            string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
-            ResultDataPackage package = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+        // check time.
+        var packages = list_received_buffer.Select(x => ConvertToJson(x)).ToList();
+        var time = packages.Select(x => GetDelay(x)).Average() - waiting_time/1000.0;
+        Debug.Log(time);
 
-            Assert.IsNotNull(package.handDataPackage);
-            Assert.IsNotNull(package.objectDataPackage);
-            Assert.AreEqual(21, package.handDataPackage.joints.Count);
-        }
+        packages.ForEach(x => CheckConetents(x));
 
+    }
+    ResultDataPackage ConvertToJson(byte[] buffer)
+    {
+        string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
+        return JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+    }
+    void CheckConetents(ResultDataPackage package)
+    {
+        Assert.IsNotNull(package.handDataPackage);
+        Assert.IsNotNull(package.objectDataPackage);
+        Assert.AreEqual(21, package.handDataPackage.joints.Count);
+    }
+    double GetDelay(ResultDataPackage package)
+    {
+        var now = DateTime.Now.ToLocalTime();
+        var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
+        double total_delay = span.TotalSeconds - package.frameInfo.timestamp_sentFromClient;
+        return total_delay;
     }
   
     //server receive

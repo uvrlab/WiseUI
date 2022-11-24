@@ -46,7 +46,7 @@ class HoloLens2PVImageData(HoloLens2SensorData):
         width = header['width']
         height = header['height']
         dataFormat = header['dataFormat']
-        dim = GetDimension(dataFormat)
+        dim = get_dimension(dataFormat)
         np_img = np.frombuffer(raw_data, np.uint8).reshape((height, width, dim))
         self.intrinsic = np.zeros((3, 3))
         self.extrinsic = np.zeros((4, 4))
@@ -55,6 +55,8 @@ class HoloLens2PVImageData(HoloLens2SensorData):
         #cv2.waitKey(1)
 
         super().__init__(header, np_img)
+    def encode_frame_info(self):
+        return super().encode_frame_info()
 
 class HoloLens2DepthImageData(HoloLens2SensorData):
     def __init__(self, header, raw_data):
@@ -65,12 +67,17 @@ class HoloLens2DepthImageData(HoloLens2SensorData):
 
         super().__init__(header, raw_data)
 
+    def encode_frame_info(self):
+        return super().encode_frame_info()
 
 class HoloLens2PointCloudData(HoloLens2SensorData):
     def __init__(self, header, data):
         super().__init__(header, data)
 
-def GetDimension(dataFormat: DataFormat):
+    def encode_frame_info(self):
+        return super().encode_frame_info()
+
+def get_dimension(dataFormat: DataFormat):
     if dataFormat == DataFormat.RGBA or dataFormat == DataFormat.BGRA \
             or dataFormat == DataFormat.ARGB or dataFormat == DataFormat.Float32:
         return 4
