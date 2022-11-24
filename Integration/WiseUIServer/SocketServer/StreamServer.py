@@ -1,56 +1,88 @@
 import sys
 import socket
 import threading
+from collections import deque
 from queue import Queue, Empty
 import os
 import logging
 
-from SocketServer.DataPackage import DataType, ImageFormat
-from SocketServer.static_functions import ReceiveLoop, DecodingLoop
+from SocketServer.type_definitions import DataType, DataFormat
+from SocketServer.static_functions import receive_loop, depackage_loop
 
 logger = logging.getLogger(__name__)
-
 
 class ClientObject:
     def __init__(self, socket, address):
         self.socket = socket
         self.address = address
-        self.queue_data_receive = Queue()
-        self.queue_data_send = Queue()
-        self.thread_receive = None
-        self.thread_decode = None
-        self.thread_process = None
 
-    def StartListeningClient(self, ProcessCallBack, DisconnectCallbackFunc):
-        thread_start = threading.Thread(target=self.Listening, args=(ProcessCallBack, DisconnectCallbackFunc))
+        self.thread_receive = None
+        self.thread_depackage = None
+        self.thread_process = None
+        self.quit_event = threading.Event()
+
+        self.queue_received_data = Queue()
+        self.queue_pv_frame = deque()
+        self.queue_depth_frame = deque()
+        self.queue_pc_frame = deque()
+
+        self.latest_pv_image = None
+        self.latest_depth_frame = None
+        self.latest_pc_frame = None
+
+        self.lock_pv_frame = threading.Lock()
+        self.lock_depth_frame = threading.Lock()
+        self.lock_pc_frame = threading.Lock()
+
+        self.is_new_pv_frame = False
+        self.is_new_depth_frame = False
+        self.is_new_pc_frame = False
+
+    def instert_pv_frame(self, frame):
+        #self.lock_pv_frame.acquire()
+        #self.latest_pv_image = frame
+        self.queue_pv_frame.append(frame)
+        #self.queue_pv_frame.join()
+        #self.is_new_pv_frame = True
+        #self.lock_pv_frame.release()
+
+    def get_latest_pv_frame(self):
+        #self.lock_pv_frame.acquire()
+        #frame = self.latest_pv_image
+        frame = self.queue_pv_frame.pop()
+        #self.queue_pv_frame.task_done()
+        #self.lock_pv_frame.release()
+        #self.is_new_pv_frame = False
+        return frame
+
+
+    def get_oldest_pv_frame(self):
+        #self.lock_pv_frame.acquire()
+        frame = self.queue_pv_frame.popleft()
+        return frame
+    def start_listening(self, processing_loop, disconnect_callback):
+        thread_start = threading.Thread(target=self.listening, args=(processing_loop, disconnect_callback))
         thread_start.start()
 
-    def Listening(self, ProcessCallBackFunc, DisconnectCallbackFunc):
-        self.thread_receive = threading.Thread(target=ReceiveLoop
-                                               , args=(self.socket, self.queue_data_receive, self.queue_data_receive))
-        # thread_send = threading.Thread(target=SendLoop, args=(sock, queue_data_send,))
-
-        self.thread_decode = threading.Thread(target=DecodingLoop,
-                                              args=(self.socket, self.queue_data_receive, self.queue_data_receive,
-                                                    ProcessCallBackFunc))
-
-        # thread_process = threading.Thread(target=ProcessCallBack,
-        #                                   args=(sock, queue_data_received, queue_data_send, ProcessCallBack))
+    def listening(self, processing_loop, disconnect_callback):
+        self.thread_receive = threading.Thread(target=receive_loop, args=(self.socket, self.queue_received_data,))
+        self.thread_depackage = threading.Thread(target=depackage_loop, args=(self.queue_received_data, self.instert_pv_frame))
+        self.thread_process = threading.Thread(target=processing_loop, args=(self,))
 
         self.thread_receive.daemon = True
-        self.thread_decode.daemon = True
-        # self.thread_process = True
+        self.thread_depackage.daemon = True
+        self.thread_process.daemon = True
 
         self.thread_receive.start()
-        self.thread_decode.start()
-        # self.thread_process.start()
+        self.thread_depackage.start()
+        self.thread_process.start()
 
         self.thread_receive.join()
-        self.thread_decode.join()
-        # # thread_send.join()
-        # self.thread_decode.join()
+        self.thread_depackage.join()
+        self.quit_event.set()
+        self.thread_process.join()
 
-        DisconnectCallbackFunc(self)
+        disconnect_callback(self)
 
 
 class StreamServer:
@@ -58,7 +90,7 @@ class StreamServer:
         self.save_folder = 'data/'
         self.list_client = []
 
-    def Listening(self, serverHost, serverPort, ProcessCallBack):
+    def listening(self, serverHost, serverPort, processing_loop):
         if not os.path.isdir(self.save_folder):
             os.mkdir(self.save_folder)
 
@@ -86,7 +118,7 @@ class StreamServer:
 
                 clientObject = ClientObject(sock, addr)
                 self.list_client.append(clientObject)
-                clientObject.StartListeningClient(ProcessCallBack, self.DisconnectCallback)
+                clientObject.start_listening(processing_loop, self.disconnect_callback)
                 print("current clients : {}".format(len(self.list_client)))
 
             except KeyboardInterrupt as e:
@@ -95,6 +127,7 @@ class StreamServer:
             except Exception:
                 pass
 
-    def DisconnectCallback(self, clientObj):
+    def disconnect_callback(self, clientObj):
         print('Disconnected with ' + clientObj.address[0] + ':' + str(clientObj.address[1]))
         self.list_client.remove(clientObj)
+

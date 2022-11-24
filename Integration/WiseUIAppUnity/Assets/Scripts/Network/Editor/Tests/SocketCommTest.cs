@@ -60,16 +60,16 @@ public class SocketCommTest
                 clients[i].SendRGBImage(i, new Texture2D(640, 360, TextureFormat.BGRA32, false), ImageCompression.None);
                 Thread.Sleep(30);
             }
-
         }
-
+        
         int waiting_time = 2000;
         Thread.Sleep(waiting_time); //wating to receive
         Assert.AreEqual(num_client * num_sendData, list_received_buffer.Count);
 
         // check time.
         var packages = list_received_buffer.Select(x => ConvertToJson(x)).ToList();
-        var time = packages.Select(x => GetDelay(x)).Average() - waiting_time / 1000.0;
+
+        var time = packages.Select(x => GetDelay(x)).Average() - waiting_time/1000.0;
         Debug.Log(time);
 
         packages.ForEach(x => CheckConetents(x));
@@ -94,7 +94,6 @@ public class SocketCommTest
         return total_delay;
     }
 
-    //server receive
     void OnDataReceive(byte[] buffer)
     {
         lock (lock_object)

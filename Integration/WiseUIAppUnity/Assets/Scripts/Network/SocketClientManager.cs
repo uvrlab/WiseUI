@@ -6,10 +6,20 @@ using System.Text;
 using TreeEditor;
 using UnityEngine;
 
+public class NoDataReceivedExecption : Exception
+{
+    public NoDataReceivedExecption(string message) : base(message)
+    {
+
+    }
+    
+}
 public class SocketClientManager : MonoBehaviour
 {
     readonly SocketClient client = new SocketClient_WiseUI();
-    ResultDataPackage resultData;
+    
+    ResultDataPackage latestResultData;
+    List<ResultDataPackage> queueResultData = new List<ResultDataPackage>();
     
     readonly object lock_object = new object();
 
@@ -34,6 +44,14 @@ public class SocketClientManager : MonoBehaviour
             {
                 return isNewObjectDataReceived;
             }
+        }
+    }
+
+    public void SetHandDataReceived(bool value)
+    {
+        lock (lock_object)
+        {
+            isNewHandDataReceived = value;
         }
     }
 
@@ -63,7 +81,8 @@ public class SocketClientManager : MonoBehaviour
             isNewHandDataReceived = true;
             isNewObjectDataReceived = true;
             string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
-            resultData = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+            latestResultData = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
+            queueResultData.Add(latestResultData);
         }
 
         //GetComponent<TrackHand>().ReceiveHandData(resultData.handData);
@@ -79,25 +98,37 @@ public class SocketClientManager : MonoBehaviour
 
     }
 
-    public void GetHandData(out FrameInfo frameInfo, out HandDataPackage handDataPackage)
+    public void GetLatestResultData(out ResultDataPackage resultDataPackage)
     {
         lock (lock_object)
         {
-            frameInfo = resultData.frameInfo;
-            handDataPackage = resultData.handDataPackage;
-            isNewHandDataReceived = false;
+            if (isNewHandDataReceived)
+            {
+                resultDataPackage = latestResultData;
+                isNewHandDataReceived = false;
+            }
+            else
+            {
+                throw new NoDataReceivedExecption("No new data received.");
+            }
         }
     }
 
-    public void GetObjectData(out FrameInfo frameInfo, out ObjectDataPackage objectDataPackage)
+
+    public void GetOldestResultData(out ResultDataPackage resultDataPackage)
     {
-        lock(lock_object)
+        lock (lock_object)
         {
-            frameInfo = resultData.frameInfo;
-            objectDataPackage = resultData.objectDataPackage;
-            isNewObjectDataReceived = false;
+            if (queueResultData.Count > 1)
+            {
+                resultDataPackage = queueResultData[1];
+                queueResultData.RemoveAt(0);
+            }
+            else
+            {
+                throw new NoDataReceivedExecption("No new data received.");
+            }
         }
-        
     }
 
     private void OnDestroy()

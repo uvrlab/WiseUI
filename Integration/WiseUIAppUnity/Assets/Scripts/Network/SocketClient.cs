@@ -24,7 +24,8 @@ public class SocketClient
 
         remoteEP = new IPEndPoint(IPAddress.Parse(serverIP), serverPort);
 
-        socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), null);
+        //socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), null);
+        socket.Connect(remoteEP);
     }
 
 
@@ -40,14 +41,15 @@ public class SocketClient
     }
     private void ConnectCallback(IAsyncResult ar)
     {
-        try
-        {
+        socket.EndConnect(ar);
+        //try
+        //{
             socket.EndConnect(ar);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-        }
+        //}
+        //catch(SocketException e)
+        //{
+        //    Debug.LogError(e.Message);
+        //}
     }
 
     /// Send message to server using socket connection.     
@@ -58,12 +60,21 @@ public class SocketClient
     
     public void Send(byte[] buffer)
     {
-        if(socket!=null)
+        if (socket != null)
         {
-            socket.BeginSend(buffer, 0, buffer.Length, 0,
-               new AsyncCallback(SendCallback), null);
+            try
+            {
+                socket.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallback), null);
+            }
+            catch (SocketException e)
+            {
+                //Debug.LogError(e.Message);
+            }
+            catch (ObjectDisposedException e)
+            {
+
+            }
         }
-        
     }
 
     private void SendCallback(IAsyncResult ar)
@@ -101,6 +112,10 @@ public class SocketClient
         catch (SocketException e)
         {
              //Debug.LogError(e.Message);
+        }
+        catch(ObjectDisposedException e)
+        {
+
         }
         
     }

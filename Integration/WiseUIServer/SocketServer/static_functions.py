@@ -1,20 +1,24 @@
 import socket
 import json
-from queue import Empty
+from queue import Empty, Queue
 
+import cv2
 import numpy as np
 import time
 import struct
 
-from SocketServer.DataPackage import ImageFormat, DataType
+from SocketServer.type_definitions import DataFormat, DataType, HoloLens2PVImageData, HoloLens2DepthImageData, \
+    HoloLens2PointCloudData
 
-
-def SendLoop(sock, queue_data_to_send):
+"""
+Not used.
+"""
+def send_loop(sock, queue_data_to_send):
     while True:
         try:
             # if queue_data_to_send.empty():
             #     if event.is_set():
-            #         print("SendLoop break")
+            #         print("send_loop break")
             #         break
             #     else:
             #         continue
@@ -24,9 +28,9 @@ def SendLoop(sock, queue_data_to_send):
                 queue_data_to_send.task_done()
             except Empty:
                 continue
-                # print("SendLoop break")
+                # print("send_loop break")
                 # if event.is_set():
-                # print("SendLoop break")
+                # print("send_loop break")
                 # break
 
         except socket.error as msg:
@@ -34,7 +38,7 @@ def SendLoop(sock, queue_data_to_send):
             break
 
 
-def ReceiveLoop(sock, queue_data_received, queue_data_send):
+def receive_loop(sock, queue_data_received):
     while True:
         try:
             start_time = time.time()
@@ -42,7 +46,6 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             # is_socket_closed(sock)
             recvData = recv_msg(sock)  # buffer size를 고정하지 않고 첫 4 byte에 기록된 buffer size 만큼 이어서 받는다.
             # print(recvData)
-
             if recvData is None:
                 continue
 
@@ -66,70 +69,47 @@ def ReceiveLoop(sock, queue_data_received, queue_data_send):
             # continue
 
 
-def DecodingLoop(socket, queue_data_received, queue_data_send, ProcessCallBack):
+def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
     while True:
         try:
             recvData = queue_data_received.get()
             queue_data_received.task_done()
-
+            # queue get을 block하지 않고 timeout을 지정하면 쓰레드 간의 병목 현상이 커져서 block했다.
+            # 따라서 queue를 이용해서 동기화 할 때는 queue안에 메세지를 넣어서 thread를 빠져나오도록 구현했다.
             if recvData == b"#Disconnect#":
-                print('DecodingLoop break')
                 break
 
-            start_time = time.time()
             header_size = struct.unpack("<i", recvData[0:4])[0]
             bHeader = recvData[4:4 + header_size]
             header = json.loads(bHeader.decode())
             data_length = header['data_length']
-
-            image_data = recvData[4 + header_size: 4 + header_size + data_length]
+            start_time = header['timestamp']
+            raw_data = recvData[4 + header_size: 4 + header_size + data_length]
 
             # print(header_size)
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
             # print(data_length)
-            DecodingData(socket, header, image_data, ProcessCallBack, queue_data_send)
-            time_to_process = time.time() - start_time
-            # print('Time to process data : {}, {} fps'.format(time_to_process, 1 / time_to_process))
+            dataType = header['dataType']
+
+            if dataType == DataType.PV:
+                instance = HoloLens2PVImageData(header, raw_data)
+                instert_pv_frame_func(instance)
+
+            elif dataType == DataType.Depth:
+                instance = HoloLens2DepthImageData(header, raw_data)
+            elif dataType == DataType.PC:
+                instance = HoloLens2PointCloudData(header, raw_data)
+            elif dataType == DataType.IMU:
+                pass
+
+            time_to_process = (time.time() - start_time) + np.finfo(float).eps
+            #print('Time b2w [send-depack]: {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
         except Empty:
-            # queue_data_received.task_done()
+            # queue.get()을 block하지 않고 timeout을 지정한 상태에서, queue가 비면 Empty exception이 발생한다.
+            # 하지만 현재는 block하지 않으므로 사실상 아무 기능을 하지 않는다.
             continue
-            # print("DecodingLoop break")
-            # if event.is_set():
-            # print("DecodingLoop break")
-            # break
-
-
-def DecodingData(socket, header, data, ProcessCallBack, queue_data_send):
-    dataType = header['dataType']
-    data_length = header['data_length']
-    timestamp = header['timestamp']
-    frameID = header['frameID']
-    img_compression = header['dataCompressionType']
-    jpgQuality = header['imageQulaity']
-
-    if dataType == DataType.PV:
-        width = header['width']
-        height = header['height']
-        imageFormat = header['imageFormat']
-
-        dim = GetDimension(imageFormat)
-
-        # if img_compression == ImageCompression.JPEG:
-        # encode_param=[int(cv2.IMWRITE_JPEG_QUALITY), jpgQuality]
-        # data = cv2.imdecode(data, encode_param)
-
-        img_np = np.frombuffer(data, np.uint8).reshape((height, width, dim))
-        delay_time = time.time() - timestamp
-        # print(f'Time delay : {delay_time}, fps : {1 / (delay_time + np.finfo(float).eps)}')
-
-        ProcessCallBack(header, img_np, socket)
-        # cv2.imwrite(f"{save_folder}PV_{frameID}.png", img_np)
-        # cv2.namedWindow("pvimage")
-        # cv2.imshow("pvimage", img_np)
-        # cv2.waitKey(1)
-        # print('Image with ts ' + str(timestamp) + ' is saved')
 
 
 def recv_msg(sock):
@@ -154,15 +134,3 @@ def recv_all(sock, n):
     return data
 
 
-def GetDimension(imgFormat: ImageFormat):
-    if imgFormat == ImageFormat.RGBA or imgFormat == ImageFormat.BGRA \
-            or imgFormat == ImageFormat.ARGB or imgFormat == ImageFormat.Float32:
-        return 4
-    elif imgFormat == ImageFormat.RGB:
-        return 3
-    elif imgFormat == ImageFormat.U16:
-        return 2
-    elif imgFormat == ImageFormat.U8:
-        return 1
-    else:
-        raise (Exception("Invalid ImageFormat Error."))
