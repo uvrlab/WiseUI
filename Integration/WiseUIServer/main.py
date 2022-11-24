@@ -1,5 +1,7 @@
 import json
 import time
+
+from SocketServer.DataPackage import HoloLens2PVImageData, HoloLens2SensorData
 from SocketServer.StreamServer import StreamServer
 #from handtracker.module_SARTE import HandTracker
 # import track_object
@@ -8,45 +10,49 @@ import cv2
 
 #track_hand = HandTracker()
 
-def processing_loop(quit_event):
+def processing_loop(client_obj):
     while True:
-        if quit_event.is_set():
+        if client_obj.quit_event.is_set():
             break
-        time.sleep(10)
-        #print("processing_loop")
+        try:
+            pv_frame:HoloLens2SensorData = client_obj.get_latest_pv_frame() # 프레임 손실, delay 적음
+            # pv_frame:HoloLens2SensorData = client_obj.get_oldest_pv_frame()  # 프레임 무손실, delay 더 큼
 
-        # intrinsic = frame_info['intrinsic'] # is not implemented yet.
-        # extrinsic = frame_info['extrinsic'] # is not implemented yet.
+            rgb_image = pv_frame.data
+            #print(pv_frame.frameID)
 
-        # server.Get()
-        # data = server.GetLatestData()
-        # data['frame_info']
-        # data['rgb_image']
-        # socket = server.GetSocket()
+            #print("processing_loop")
+            # intrinsic = frame_info['intrinsic'] # is not implemented yet.
+            # extrinsic = frame_info['extrinsic'] # is not implemented yet.
 
-        # cv2.imshow("pv", rgb_image)
-        # cv2.waitKey(1)
-        # result_object = None #track_object.Process(rgb_image)
-        # result_hand =  None #track_hand.Process(rgb_image)
-        #
-        # """ Packing data for sending to hololens """
-        # resultData = dict()
-        # resultData['frameInfo'] = encode_frame_info(frame_info)
-        # resultData['objectDataPackage'] = encode_object_data(result_object)
-        # resultData['handDataPackage'] = encode_hand_data(result_hand)
-        #
-        # """ Send data """
-        # resultBytes = json.dumps(resultData).encode('utf-8')
-        # print(resultBytes)
-        # print("bytes of result : {}".format(len(resultBytes)))
-        # client_socket.send(resultBytes)
+            # server.Get()
+            # data = server.GetLatestData()
+            # data['frame_info']
+            # data['rgb_image']
+            # socket = server.GetSocket()
 
-def encode_frame_info(frame_info):
-    frameInfo = dict()
-    frameInfo['frameID'] = frame_info['frameID']
-    frameInfo['timestamp_sentFromClient'] = frame_info['timestamp'] # 홀로렌즈에서 이미지를 보낸시간
-    frameInfo['timestamp_sentFromServer'] = float(time.time()) # 서버에서 홀로렌즈로 처리 결과를 보낸 시간
-    return frameInfo
+            cv2.imshow("pv", rgb_image)
+            cv2.waitKey(1)
+
+            result_object = None #track_object.Process(rgb_image)
+            result_hand = None #track_hand.Process(rgb_image)
+
+            """ Packing data for sending to hololens """
+            resultData = dict()
+            resultData['frameInfo'] = pv_frame.encode_frame_info()
+            resultData['objectDataPackage'] = encode_object_data(result_object)
+            resultData['handDataPackage'] = encode_hand_data(result_hand)
+
+            """ Send data """
+            resultBytes = json.dumps(resultData).encode('utf-8')
+            print(resultBytes)
+            print("bytes of result : {}".format(len(resultBytes)))
+            client_obj.socket.send(resultBytes)
+
+        except Exception as e:
+            pass
+            #print(e)
+
 
 def encode_hand_data(hand_result):
     """ Encode hand data to json format """

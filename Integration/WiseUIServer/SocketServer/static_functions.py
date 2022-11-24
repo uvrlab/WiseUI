@@ -93,9 +93,8 @@ def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
             dataType = header['dataType']
 
             if dataType == DataType.PV:
-                pass
-                #instance = HoloLens2PVImageData(header, raw_data)
-                #instert_pv_frame_func(instance)
+                instance = HoloLens2PVImageData(header, raw_data)
+                instert_pv_frame_func(instance)
 
             elif dataType == DataType.Depth:
                 instance = HoloLens2DepthImageData(header, raw_data)
@@ -105,7 +104,7 @@ def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
                 pass
 
             time_to_process = (time.time() - start_time) + np.finfo(float).eps
-            print('Time b2w [send-depack]: {}, {} fps'.format(time_to_process, 1 / time_to_process))
+            #print('Time b2w [send-depack]: {}, {} fps'.format(time_to_process, 1 / time_to_process))
 
         except Empty:
             # queue.get()을 block하지 않고 timeout을 지정한 상태에서, queue가 비면 Empty exception이 발생한다.

@@ -1,6 +1,7 @@
 import sys
 import socket
 import threading
+from collections import deque
 from queue import Queue, Empty
 import os
 import logging
@@ -9,7 +10,6 @@ from SocketServer.DataPackage import DataType, DataFormat
 from SocketServer.static_functions import receive_loop, depackage_loop
 
 logger = logging.getLogger(__name__)
-
 
 class ClientObject:
     def __init__(self, socket, address):
@@ -22,9 +22,9 @@ class ClientObject:
         self.quit_event = threading.Event()
 
         self.queue_received_data = Queue()
-        self.queue_pv_frame = Queue()
-        self.queue_depth_frame = Queue()
-        self.queue_pc_frame = Queue()
+        self.queue_pv_frame = deque()
+        self.queue_depth_frame = deque()
+        self.queue_pc_frame = deque()
 
         self.latest_pv_image = None
         self.latest_depth_frame = None
@@ -34,30 +34,38 @@ class ClientObject:
         self.lock_depth_frame = threading.Lock()
         self.lock_pc_frame = threading.Lock()
 
+        self.is_new_pv_frame = False
+        self.is_new_depth_frame = False
+        self.is_new_pc_frame = False
+
     def instert_pv_frame(self, frame):
-        self.lock_pv_frame.acquire()
-        self.latest_pv_image = frame
-        #self.queue_pv_frame.put(frame)
+        #self.lock_pv_frame.acquire()
+        #self.latest_pv_image = frame
+        self.queue_pv_frame.append(frame)
         #self.queue_pv_frame.join()
-        self.lock_pv_frame.release()
+        #self.is_new_pv_frame = True
+        #self.lock_pv_frame.release()
 
     def get_latest_pv_frame(self):
-        self.lock_pv_frame.acquire()
-        copied_frame = self.latest_pv_image.copy()
-        self.lock_pc_frame.release()
-
-        return copied_frame
+        try:
+            #self.lock_pv_frame.acquire()
+            #frame = self.latest_pv_image
+            frame = self.queue_pv_frame.pop()
+            #self.queue_pv_frame.task_done()
+            #self.lock_pv_frame.release()
+            #self.is_new_pv_frame = False
+            return frame
+        except Exception:
+            raise Exception("No new frame")
 
     def get_oldest_pv_frame(self):
         try:
-            self.lock_pv_frame.acquire()
-            data = self.queue_frame_data.get()
-            self.queue_frame_data.task_done()
-            copied_frame = data.copy()
-            self.lock_pv_frame.release()
+            #self.lock_pv_frame.acquire()
+            frame = self.queue_pv_frame.popleft()
+            return frame
 
-        except Empty:
-            raise Empty
+        except Exception:
+            raise Exception("No new frame")
 
         return copied_frame
     def start_listening(self, processing_loop, disconnect_callback):
@@ -67,7 +75,7 @@ class ClientObject:
     def listening(self, processing_loop, disconnect_callback):
         self.thread_receive = threading.Thread(target=receive_loop, args=(self.socket, self.queue_received_data,))
         self.thread_depackage = threading.Thread(target=depackage_loop, args=(self.queue_received_data, self.instert_pv_frame))
-        self.thread_process = threading.Thread(target=processing_loop, args=(self.quit_event,))
+        self.thread_process = threading.Thread(target=processing_loop, args=(self,))
 
         self.thread_receive.daemon = True
         self.thread_depackage.daemon = True

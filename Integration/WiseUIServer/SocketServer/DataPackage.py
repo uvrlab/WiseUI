@@ -1,3 +1,5 @@
+from datetime import time
+import time
 import cv2
 import numpy as np
 
@@ -29,9 +31,15 @@ class HoloLens2SensorData:
     def __init__(self, header, data):
         self.data = data
         self.frameID = header['frameID']
-        self.timestamp_fromClient = header['timestamp']
+        self.timestamp_sentfromClient = header['timestamp']
         self.dataFormat = header['dataFormat']  # U16
+    def encode_frame_info(self):
+        frame_info = dict()
+        frame_info['frameID'] = self.frameID
+        frame_info['timestamp_sentFromClient'] = self.timestamp_sentfromClient
+        frame_info['timestamp_sentFromServer'] = float(time.time())  # 서버에서 홀로렌즈로 처리 결과를 보낸 시간
 
+        return frame_info
 
 class HoloLens2PVImageData(HoloLens2SensorData):
     def __init__(self, header, raw_data):
@@ -43,8 +51,8 @@ class HoloLens2PVImageData(HoloLens2SensorData):
         self.intrinsic = np.zeros((3, 3))
         self.extrinsic = np.zeros((4, 4))
 
-        cv2.imshow("pvimage", np_img)
-        cv2.waitKey(1)
+        #cv2.imshow("pvimage", np_img)
+        #cv2.waitKey(1)
 
         super().__init__(header, np_img)
 
@@ -53,8 +61,10 @@ class HoloLens2DepthImageData(HoloLens2SensorData):
         self.extrinsic = np.zeros((4, 4))
         self.width = header['width']
         self.height = header['height']
+        self.timestamp_sentfromClient = header['timestamp']
 
         super().__init__(header, raw_data)
+
 
 class HoloLens2PointCloudData(HoloLens2SensorData):
     def __init__(self, header, data):
