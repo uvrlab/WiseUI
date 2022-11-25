@@ -89,7 +89,7 @@ def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
             # print(header_size)
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
-            print(header)
+            #print(header)
             #print(data_length)
             dataType = header['dataType']
 

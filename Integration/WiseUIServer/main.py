@@ -23,8 +23,8 @@ def processing_loop(client_obj):
             # intrinsic = pv_frame.intrinsic
             # extrinsic = pv_frame.extrinsic
 
-            cv2.imshow("pv", pv_frame.data)
-            cv2.waitKey(1)
+            #cv2.imshow("pv", pv_frame.data)
+            #cv2.waitKey(1)
 
             result_object = None #track_object.Process(pv_frame.data)
             result_hand = None #track_hand.Process(rgb_image)
@@ -37,7 +37,7 @@ def processing_loop(client_obj):
 
             """ Send data """
             resultBytes = json.dumps(resultData).encode('utf-8')
-            print("bytes of total : {}".format(len(resultBytes)))
+            #print("bytes of total : {}".format(len(resultBytes)))
             try:
                 client_obj.socket.send(resultBytes)
             except Exception as e:
