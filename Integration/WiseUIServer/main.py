@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     server = StreamServer()
 
-    server.listening('', 9090, processing_loop)
+    server.listening('', 9091, processing_loop)
 
     #processing thread 시작
 
