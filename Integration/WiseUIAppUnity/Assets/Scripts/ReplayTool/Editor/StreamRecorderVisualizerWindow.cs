@@ -121,7 +121,7 @@ namespace ARRC.StreamRecorderVisualizer
             taskManager.Update();
         }
 
-        [MenuItem("WiseUI/Stream Recorder Visualizer")]
+        //[MenuItem("WiseUI/Stream Recorder Visualizer")]
         public static StreamRecorderVisualizerWindow OpenWindow()
         {
             return Instance;
