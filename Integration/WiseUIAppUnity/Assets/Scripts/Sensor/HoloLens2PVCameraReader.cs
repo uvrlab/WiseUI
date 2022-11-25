@@ -36,9 +36,9 @@ namespace SensorStream
         [SerializeField]
         int frameID;
 #if ENABLE_WINMD_SUPPORT
-    DefaultStream pvCameraStream;
+        DefaultStream pvCameraStream;
 #elif USE_OPENCV
-    WebcamOpenCVStream pvCameraStream;
+        WebcamOpenCVStream pvCameraStream;
 #else
         WebcamStream pvCameraStream;
 #endif

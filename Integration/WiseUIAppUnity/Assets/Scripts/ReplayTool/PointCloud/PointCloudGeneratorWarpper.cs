@@ -41,7 +41,7 @@ public class PointCloudGeneratorWarpper
         pointCloudObj.GetComponent<PointCloudInfo>().vertexCount = pointCloudInfo.vertexCount;
        
         int count = pointCloudInfo.vertexCount;
-        Debug.Log ("1:"+count.ToString());
+        Debug.Log ("size of pointcloud:"+count.ToString());
 	}
     void LoadPointCloudFromXML(GameObject pointCloudObj, string filepath, out MeshInfos pointcloudInfo)
     {
