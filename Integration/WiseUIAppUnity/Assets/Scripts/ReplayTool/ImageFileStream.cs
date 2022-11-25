@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class ImageFileStream 
 {
-    public static GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float alpha_transparent)
+    public static GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency_texture)
     {
         //Convert transform.
         var rh = ChangeHandedCoordinateSystem2(pvFrame.PVtoWorldtransform);
@@ -21,7 +21,7 @@ public static class ImageFileStream
         float fx = pvFrame.cameraIntrinsic.focalLength.x;
         float fy = pvFrame.cameraIntrinsic.focalLength.y;
         //Create Image Object.
-        GameObject go_PV = CreateImage(pvFrame.timestamp.ToString(), texture, position, rotation, alpha_transparent);
+        GameObject go_PV = CreateImage(pvFrame.timestamp.ToString(), texture, position, rotation, transparency_texture);
         go_PV.transform.parent = parent;
         //go_PV.GetComponent<MeshRenderer>().enabled = false;
         go_PV.transform.position = position;
@@ -42,7 +42,7 @@ public static class ImageFileStream
 
         return go_PV;
     }
-    static GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float alpha_transparent)
+    static GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float transparency_texture)
     {
         GameObject imgGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
         var collider = imgGO.GetComponent<MeshCollider>();
@@ -52,7 +52,7 @@ public static class ImageFileStream
         Renderer rend = imgGO.GetComponent<Renderer>();
         rend.material = new Material(Shader.Find("Somian/Unlit/Transparent"));
         rend.sharedMaterial.mainTexture = texture;
-        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, alpha_transparent));
+        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
 
         return imgGO;
     }

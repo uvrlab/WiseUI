@@ -51,8 +51,8 @@ class HoloLens2PVImageData(HoloLens2SensorData):
         self.intrinsic = np.zeros((3, 3))
         self.extrinsic = np.zeros((4, 4))
 
-        #cv2.imshow("pvimage", np_img)
-        #cv2.waitKey(1)
+        cv2.imshow("pvimage", np_img)
+        cv2.waitKey(1)
 
         super().__init__(header, np_img)
     def encode_frame_info(self):

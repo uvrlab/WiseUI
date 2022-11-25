@@ -89,7 +89,8 @@ def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
             # print(header_size)
             # print(recvData[4:4 + header_size])
             # print(len(image_data))
-            # print(data_length)
+            #print(recvData)
+            #print(data_length)
             dataType = header['dataType']
 
             if dataType == DataType.PV:
@@ -105,7 +106,6 @@ def depackage_loop(queue_data_received:Queue, instert_pv_frame_func):
 
             time_to_process = (time.time() - start_time) + np.finfo(float).eps
             #print('Time b2w [send-depack]: {}, {} fps'.format(time_to_process, 1 / time_to_process))
-
         except Empty:
             # queue.get()을 block하지 않고 timeout을 지정한 상태에서, queue가 비면 Empty exception이 발생한다.
             # 하지만 현재는 block하지 않으므로 사실상 아무 기능을 하지 않는다.

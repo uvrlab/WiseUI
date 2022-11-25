@@ -31,6 +31,7 @@ public class SocketClient_WiseUI : SocketClient
             bImage = texture.EncodeToJPG(jpgQuality);
 
         header.data_length = bImage.Length;
+        //Debug.Log(header.data_length);
 
         string sHeader = JsonUtility.ToJson(header);
         byte[] bHeader = Encoding.ASCII.GetBytes(sHeader);

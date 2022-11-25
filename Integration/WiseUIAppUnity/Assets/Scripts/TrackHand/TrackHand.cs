@@ -7,13 +7,13 @@ public class TrackHand : MonoBehaviour
 {
     public SocketClientManager tcpClientManager;
     // Start is called before the first frame update
-    void Awake()
+    public void Awake()
     {
         tcpClientManager = GetComponent<SocketClientManager>();
     }
 
 
-    void Update()
+    public void Update()
     {
         try
         {
@@ -36,4 +36,6 @@ public class TrackHand : MonoBehaviour
             //Debug.Log(e); // 더 이상 받아올 데이터가 없을 때 발생하는 예외.
         }
     }
+
+ 
 }

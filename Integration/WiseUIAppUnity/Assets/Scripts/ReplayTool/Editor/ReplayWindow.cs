@@ -11,6 +11,8 @@ using System.Net.Sockets;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static PlasticGui.PlasticTableColumn;
+using static UnityEngine.GraphicsBuffer;
 
 public class ReplayWindow : EditorWindow
 {
@@ -32,7 +34,7 @@ public class ReplayWindow : EditorWindow
     public GameObject environment;
     public GameObject hl2_camera;
     public GameObject runner;
-
+    public Material flipMat;
     List<string> frameLines;
     float[] principalPoint;
     int[] imageSize;
@@ -45,6 +47,7 @@ public class ReplayWindow : EditorWindow
         EditorGUILayout.PropertyField(serializedObject.FindProperty("environment"), true); // True means show children
         EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
         EditorGUILayout.PropertyField(serializedObject.FindProperty("hl2_camera"), true); // True means show children
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("flipMat"), true); // True means show children
         
         LoadGUI();
         GUILayout.Space(10);
@@ -172,7 +175,8 @@ public class ReplayWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(GUI.skin.box);
 
-        EditorGUILayout.LabelField("Total frames : " + frameLines.Count);
+        if(frameLines != null)
+            EditorGUILayout.LabelField("Total frames : " + frameLines.Count);
 
         skip_frame_count = EditorGUILayout.IntField("Skip count", skip_frame_count);
         transparency_texture = EditorGUILayout.FloatField("Transparency", transparency_texture);
@@ -186,6 +190,12 @@ public class ReplayWindow : EditorWindow
                 DestroyImmediate(hl2_camera);
             current_frame_id -= skip_frame_count;
             hl2_camera = CreateImage(current_frame_id, transparency_texture);
+
+            //hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
+            var texture = hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+            runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, ToTexture2D(texture));
+            runner.GetComponent<TrackHand>().Awake();
+            runner.GetComponent<TrackHand>().Update();
         }
         current_frame_id = EditorGUILayout.IntField("", current_frame_id);
         if ((Event.current.keyCode == KeyCode.D || GUILayout.Button(">")) && (current_frame_id + skip_frame_count) < frameLines.Count - 1)
@@ -194,7 +204,15 @@ public class ReplayWindow : EditorWindow
                 DestroyImmediate(hl2_camera);
             current_frame_id += skip_frame_count;
             hl2_camera = CreateImage(current_frame_id, transparency_texture);
+
+            //hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
+            var texture = hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+            runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, ToTexture2D(texture));
+            runner.GetComponent<TrackHand>().Awake();
+            runner.GetComponent<TrackHand>().Update();
+
         }
+  
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
     
@@ -241,7 +259,30 @@ public class ReplayWindow : EditorWindow
         PlayerPrefs.SetString("dataset_path", dataset_path);
         Debug.Log(dataset_path);
     }
+    public Texture2D ToTexture2D(Texture texture)
+    {
+        int width = texture.width;
+        int height = texture.height;
+        //save the active render texture
+        RenderTexture temp = RenderTexture.active;
 
+        //create new render texture and copy from the target texture
+        RenderTexture copiedRenderTexture = new RenderTexture(width, height, 0);
+        Graphics.Blit(texture, copiedRenderTexture, new Material(Shader.Find("FlipShader")));
+        //Debug.Log(copiedRenderTexture.format.ToString());
+        //change active render texture
+        RenderTexture.active = copiedRenderTexture;
+
+        //copy to texture 2d
+        Texture2D convertedImage = new Texture2D(width, height, TextureFormat.BGRA32, false);
+        convertedImage.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        convertedImage.Apply();
+
+        RenderTexture.active = temp;
+
+        return convertedImage;
+
+    }
 
     [MenuItem("WiseUI/Replay Tool")]
     public static ReplayWindow OpenWindow()
