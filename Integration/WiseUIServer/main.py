@@ -37,8 +37,12 @@ def processing_loop(client_obj):
 
             """ Send data """
             resultBytes = json.dumps(resultData).encode('utf-8')
-            # print("bytes of total : {}".format(len(resultBytes)))
-            client_obj.socket.send(resultBytes)
+            print("bytes of total : {}".format(len(resultBytes)))
+            try:
+                client_obj.socket.send(resultBytes)
+            except Exception as e:
+                #print(e)
+                pass
             #time.sleep(0.1) # 10Hz, 테스트용 처리시간.
 
         except IndexError as e:
@@ -91,7 +95,7 @@ if __name__ == '__main__':
 
     server = StreamServer()
 
-    server.listening('', 9091, processing_loop)
+    server.listening('', 9090, processing_loop)
 
     #processing thread 시작
 

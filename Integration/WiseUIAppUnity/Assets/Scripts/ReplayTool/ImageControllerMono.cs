@@ -76,7 +76,9 @@ public class ImageControllerMono : MonoBehaviour
     {
         if (Event.current.type == EventType.Layout || Event.current.type == EventType.Repaint)
         {
+#if UNITY_EDITOR
             EditorUtility.SetDirty(this); // this is important, if omitted, "Mouse down" will not be display
+#endif
         }
 
         if (selState == 1)

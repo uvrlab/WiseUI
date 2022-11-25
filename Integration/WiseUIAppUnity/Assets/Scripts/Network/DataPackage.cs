@@ -1,10 +1,4 @@
-using Microsoft.MixedReality.Toolkit.Utilities;
-using OpenCvSharp;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using TreeEditor;
-using UnityEngine;
 
 
 public enum DataFormat
