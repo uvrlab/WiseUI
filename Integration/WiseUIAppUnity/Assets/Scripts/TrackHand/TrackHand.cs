@@ -26,10 +26,7 @@ public class TrackHand : MonoBehaviour
             var frameInfo = frameData.frameInfo;
             var handData = frameData.handDataPackage;
 
-            var now = DateTime.Now.ToLocalTime();
-            var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
-            double total_delay = span.TotalSeconds - frameInfo.timestamp_sentFromClient;
-            Debug.LogFormat("frameID : {0}, total_delay {1}, ", frameInfo.frameID, total_delay);
+            
         }
         catch (NoDataReceivedExecption e)
         {

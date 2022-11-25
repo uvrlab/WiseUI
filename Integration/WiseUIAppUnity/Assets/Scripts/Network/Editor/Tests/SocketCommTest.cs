@@ -24,7 +24,7 @@ public class SocketCommTest
     int countReceive;
     //SocketServer server = new SocketServer();
 
-    static readonly double time_benchmark1 = 0.585009551048279;
+    static readonly double time_benchmark1 = 0.61;
 
     List<byte[]> list_received_buffer = new List<byte[]>();
     readonly object lock_object = new object();
@@ -70,7 +70,7 @@ public class SocketCommTest
         var packages = list_received_buffer.Select(x => ConvertToJson(x)).ToList();
 
         var time = packages.Select(x => GetDelay(x)).Average() - waiting_time/1000.0;
-        Debug.Log(time);
+        Debug.LogFormat("benchmark_t1: {0}, test: {1}", time_benchmark1, time);
 
         packages.ForEach(x => CheckConetents(x));
 

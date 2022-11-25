@@ -20,21 +20,19 @@ public class ReplayWindow : EditorWindow
 
     string hostIP = "127.0.0.1";
     int port = 9091;
-    bool track_hand = false;
-    bool track_object = false;
+    bool send_data = true;
 
     Vector2 scrollPos = Vector2.zero;
 
-    int current_frame_id = -1, start_frame_id, end_frame_id;
+    int current_frame_id = -1, prev_frame_id, start_frame_id, end_frame_id;
 
     bool load_ok = false;
     bool isConnected = false;
-    public float transparency_texture = 0.7f;
+    public float transparency_texture = 0.5f;
     public int skip_frame_count = 1;
     public GameObject environment;
-    public GameObject hl2_camera;
+    public GameObject hololens2_camera;
     public GameObject runner;
-    public Material flipMat;
     List<string> frameLines;
     float[] principalPoint;
     int[] imageSize;
@@ -42,13 +40,6 @@ public class ReplayWindow : EditorWindow
 
     private void OnGUI()
     {
-        ScriptableObject target = this;
-        SerializedObject serializedObject = new SerializedObject(target);
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("environment"), true); // True means show children
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("hl2_camera"), true); // True means show children
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("flipMat"), true); // True means show children
-        
         LoadGUI();
         GUILayout.Space(10);
         SocketConnectionGUI();
@@ -57,8 +48,6 @@ public class ReplayWindow : EditorWindow
         GUILayout.Space(10);
         FramePlayGUI();
 
-        serializedObject.ApplyModifiedProperties(); // Remember to apply modified properties
-        serializedObject.Update();
     }
 
     void LoadGUI()
@@ -75,8 +64,8 @@ public class ReplayWindow : EditorWindow
         if (GUILayout.Button("Load"))
         {
             environment = new GameObject(dataset_path);
-            //hl2_camera = new GameObject("hl2_camera");
-            //hl2_camera.transform.parent = environment.transform;
+            //hololens2_camera = new GameObject("hololens2_camera");
+            //hololens2_camera.transform.parent = environment.transform;
 
             runner = GameObject.Find("Runner");
             if (runner == null)
@@ -110,9 +99,18 @@ public class ReplayWindow : EditorWindow
             end_frame_id = frameLines.Count - 1;
             ///frameLines.ForEach(i => AddTask(new ReadFrameTask(recordingDirectory, principalPoint[0], principalPoint[1], imageSize[0], imageSize[1], i, parentObject.transform)));
 
-            Debug.Log(frameLines.Count);
+            //Debug.Log(frameLines.Count);
         }
-       
+
+        ScriptableObject target = this;
+        SerializedObject serializedObject = new SerializedObject(target);
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("environment"), true); // True means show children
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("hololens2_camera"), true); // True means show children
+
+        serializedObject.ApplyModifiedProperties(); // Remember to apply modified properties
+        serializedObject.Update();
+
         EditorGUILayout.EndVertical();
     }
 
@@ -155,11 +153,12 @@ public class ReplayWindow : EditorWindow
                 Debug.Log("Load dataset first.");
             }
         }
-        if ((isConnected && GUILayout.Button("Disconnect.")))
+        if ((isConnected && GUILayout.Button("Disconnect")))
         {
             try
             {
                 runner.GetComponent<SocketClientManager>().Disconnect();
+                
                 Debug.Log("Disconnect.");
                 isConnected = false;
             }
@@ -181,49 +180,40 @@ public class ReplayWindow : EditorWindow
         skip_frame_count = EditorGUILayout.IntField("Skip count", skip_frame_count);
         transparency_texture = EditorGUILayout.FloatField("Transparency", transparency_texture);
 
-        track_hand = EditorGUILayout.Toggle("Track Hand", track_hand);
-        track_object = EditorGUILayout.Toggle("Track Object", track_object);
+        send_data = EditorGUILayout.Toggle("Send data to server", send_data);
         EditorGUILayout.BeginHorizontal();
-        if ((Event.current.keyCode == KeyCode.A || GUILayout.Button("<")) && (current_frame_id - skip_frame_count) > 0)
-        {
-            if (hl2_camera)
-                DestroyImmediate(hl2_camera);
+        current_frame_id = EditorGUILayout.IntField("Current frame id", current_frame_id);
+        if ((Event.current.keyCode == KeyCode.A || GUILayout.Button("<")) && (current_frame_id - skip_frame_count) > -1)
             current_frame_id -= skip_frame_count;
-            hl2_camera = CreateImage(current_frame_id, transparency_texture);
-
-            //hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
-            var texture = hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
-            runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, ToTexture2D(texture));
-            runner.GetComponent<TrackHand>().Awake();
-            runner.GetComponent<TrackHand>().Update();
-        }
-        current_frame_id = EditorGUILayout.IntField("", current_frame_id);
         if ((Event.current.keyCode == KeyCode.D || GUILayout.Button(">")) && (current_frame_id + skip_frame_count) < frameLines.Count - 1)
-        {
-            if (hl2_camera)
-                DestroyImmediate(hl2_camera);
             current_frame_id += skip_frame_count;
-            hl2_camera = CreateImage(current_frame_id, transparency_texture);
 
-            //hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.SetTextureScale("_MainTex", new Vector2(-1, 1));
-            var texture = hl2_camera.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
-            runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, ToTexture2D(texture));
-            runner.GetComponent<TrackHand>().Awake();
-            runner.GetComponent<TrackHand>().Update();
-
+        //check current_frame_id is changed.
+        if (current_frame_id != prev_frame_id && current_frame_id > -1 && current_frame_id < frameLines.Count)
+        {
+            if (hololens2_camera != null)
+                DestroyImmediate(hololens2_camera);
+            hololens2_camera = CreateImage(current_frame_id, transparency_texture);
+            prev_frame_id = current_frame_id;
+            if (send_data)
+            {
+                var texture = hololens2_camera.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+                runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, ToTexture2D(texture));
+                runner.GetComponent<TrackHand>().Awake();
+                runner.GetComponent<TrackHand>().Update(); //주의 : 지연시간이 있으므로, 바로 위에서 보낸 이미지에 대한 결과를 가지고 update하는 것이 아님.
+            }
         }
-  
+
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
-    
-
     }
 
     void FramePlayGUI()
     {
         EditorGUILayout.BeginVertical(GUI.skin.box);
-        start_frame_id = EditorGUILayout.IntField("Start", start_frame_id);
-        end_frame_id = EditorGUILayout.IntField("End", end_frame_id);
+        EditorGUILayout.LabelField("Not implemented yet");
+        start_frame_id = EditorGUILayout.IntField("Start frame id", start_frame_id);
+        end_frame_id = EditorGUILayout.IntField("End framd id", end_frame_id);
         if (GUILayout.Button("Play"))
         {
 
