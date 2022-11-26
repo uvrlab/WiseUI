@@ -22,7 +22,6 @@ public class SocketClientManager : MonoBehaviour
 
     bool isNewHandDataReceived;
     bool isNewObjectDataReceived;
-    
     public bool IsNewHandDataReceived
     {
         get
@@ -30,6 +29,13 @@ public class SocketClientManager : MonoBehaviour
             lock(lock_object)
             {
                 return isNewHandDataReceived;
+            }
+        }
+        set
+        {
+            lock (lock_object)
+            {
+                isNewHandDataReceived = value;
             }
         }
     }
@@ -40,6 +46,13 @@ public class SocketClientManager : MonoBehaviour
             lock (lock_object)
             {
                 return isNewObjectDataReceived;
+            }
+        }
+        set
+        {
+            lock (lock_object)
+            {
+                isNewObjectDataReceived = value;
             }
         }
     }
@@ -54,12 +67,20 @@ public class SocketClientManager : MonoBehaviour
 
     public void Connect(string serverIP, int serverPort, int maxBufferSize = 4096)
     {
+        IsNewHandDataReceived = false;
+        IsNewObjectDataReceived = false;
+        latestResultData = null;
+        queueResultData.Clear();
         client.Connect(serverIP, serverPort);
         client.BeginReceive(OnReceiveData, maxBufferSize);
     }
 
     public void Disconnect()
     {
+        IsNewHandDataReceived = false;
+        IsNewObjectDataReceived = false;
+        latestResultData = null;
+        queueResultData.Clear();
         client.Disconnect();
     }
     public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
@@ -69,7 +90,7 @@ public class SocketClientManager : MonoBehaviour
 
 
     /*
-     * ÁÖÀÇ : ¾Æ·¡ ÇÔ¼ö´Â main thread¿¡¼­ È£ÃâµÇ´Â ÇÔ¼ö°¡ ¾Æ´Ô.
+     * ï¿½ï¿½ï¿½ï¿½ : ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ main threadï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½.
      */
     public void OnReceiveData(byte[] buffer)
     {
@@ -80,6 +101,11 @@ public class SocketClientManager : MonoBehaviour
             string receivedDataString = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
             latestResultData = JsonUtility.FromJson<ResultDataPackage>(receivedDataString);
             queueResultData.Add(latestResultData);
+
+            var now = DateTime.Now.ToLocalTime();
+            var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
+            double total_delay = span.TotalSeconds - latestResultData.frameInfo.timestamp_sentFromClient;
+            Debug.LogFormat("frameID : {0}, total_delay {1}, ", latestResultData.frameInfo.frameID, total_delay);
         }
 
         //GetComponent<TrackHand>().ReceiveHandData(resultData.handData);

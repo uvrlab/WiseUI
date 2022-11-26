@@ -47,11 +47,25 @@ namespace SensorStream
 
         public byte[] GetPVCameraBuffer(/*compression*/)
         {
+            int width = webCamTexture.width;
+            int height = webCamTexture.height;
+            //save the active render texture
+            RenderTexture temp = RenderTexture.active;
+            
+            RenderTexture copiedRenderTexture = new RenderTexture(width, height, 0);
+            Graphics.Blit(webCamTexture, copiedRenderTexture, new Material(Shader.Find("FlipShader")));
 
-            Color[] cdata = webCamTexture.GetPixels();
-            targetTexture.SetPixels(cdata);
+            RenderTexture.active = copiedRenderTexture;
+            //copy to texture 2d
+            targetTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             targetTexture.Apply();
 
+            RenderTexture.active = temp;
+            
+            //Color[] cdata = webCamTexture.GetPixels();
+            //targetTexture.SetPixels(cdata);
+            //targetTexture.Apply();
+            
 
             return targetTexture.GetRawTextureData();
 

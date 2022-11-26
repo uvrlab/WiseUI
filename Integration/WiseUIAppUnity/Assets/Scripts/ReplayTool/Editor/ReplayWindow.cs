@@ -172,7 +172,7 @@ public class ReplayWindow : EditorWindow
             var texture = frame.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
             runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, texture.ToTexture2D(TextureFormat.BGRA32, Shader.Find("FlipShader")));
             runner.GetComponent<TrackHand>().Awake();
-            runner.GetComponent<TrackHand>().Update(); //ÁÖÀÇ : Áö¿¬½Ã°£ÀÌ ÀÖÀ¸¹Ç·Î, ¹Ù·Î À§¿¡¼­ º¸³½ ÀÌ¹ÌÁö¿¡ ´ëÇÑ °á°ú¸¦ °¡Áö°í updateÇÏ´Â °ÍÀÌ ¾Æ´Ô.
+            runner.GetComponent<TrackHand>().Update(); //ì£¼ì˜ : ê²°ê³¼ë¥¼ ë°›ê¸°ê¹Œì§€ ì§€ì—°ì‹œê°„ì´ ìˆìœ¼ë¯€ë¡œ, ë°”ë¡œ ìœ„ì—ì„œ ë³´ë‚¸ ì´ë¯¸ì§€ì— ëŒ€í•œ ê²°ê³¼ê°€ ì•„ë‹˜.
         }
     }
     void Update()
