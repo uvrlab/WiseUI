@@ -12,7 +12,7 @@ public class TrackHand : MonoBehaviour
         tcpClientManager = GetComponent<SocketClientManager>();
     }
 
-
+    
     public void Update()
     {
         try
@@ -25,6 +25,22 @@ public class TrackHand : MonoBehaviour
             //tcpClientManager.GetOldestResultData(out frameData);
             var frameInfo = frameData.frameInfo;
             var handData = frameData.handDataPackage;
+
+            /// <summary>
+            /// Test
+            /// </summary>
+            var finger_tip = GameObject.Find("FingerTip").transform;
+            
+            var matrix_finger_tip = finger_tip.localToWorldMatrix;
+            
+            var extrinsic = tcpClientManager.GetCameraExtrinsic(frameInfo.frameID);
+            var intrinsic = tcpClientManager.GetCameraIntrinsic(frameInfo.frameID);
+            var x_2d = intrinsic * extrinsic * matrix_finger_tip;
+            
+            Debug.Log(Screen.width / 2);
+            //x_2d = I*E*X_3D
+
+
 
         }
         catch (NoDataReceivedExecption e)

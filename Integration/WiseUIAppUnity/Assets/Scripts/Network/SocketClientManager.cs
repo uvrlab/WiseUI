@@ -13,6 +13,9 @@ public class NoDataReceivedExecption : Exception
 }
 public class SocketClientManager : MonoBehaviour
 {
+    Dictionary<int, Matrix4x4> camera_extrinsics = new Dictionary<int, Matrix4x4>();
+    Dictionary<int, Matrix4x4> camera_intrinsics = new Dictionary<int, Matrix4x4>();
+
     readonly SocketClient client = new SocketClient_WiseUI();
     
     ResultDataPackage latestResultData;
@@ -83,9 +86,12 @@ public class SocketClientManager : MonoBehaviour
         queueResultData.Clear();
         client.Disconnect();
     }
-    public void SendRGBImage(int frameID, Texture2D texture, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
+    public void SendRGBImage(int frameID, Texture2D texture
+        , Matrix4x4 intrinsic, Matrix4x4 extrinsic, ImageCompression comp = ImageCompression.None, int jpgQuality = 75)
     {
-        ((SocketClient_WiseUI)client).SendRGBImage(frameID, texture, comp, jpgQuality); 
+        ((SocketClient_WiseUI)client).SendRGBImage(frameID, texture, comp, jpgQuality);
+        camera_intrinsics[frameID] = intrinsic;
+        camera_extrinsics[frameID] = extrinsic;
     }
 
 
@@ -105,7 +111,7 @@ public class SocketClientManager : MonoBehaviour
             var now = DateTime.Now.ToLocalTime();
             var span = now - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime();
             double total_delay = span.TotalSeconds - latestResultData.frameInfo.timestamp_sentFromClient;
-            Debug.LogFormat("frameID : {0}, total_delay {1}, ", latestResultData.frameInfo.frameID, total_delay);
+            Debug.LogFormat("frameID : {0}, total_delay : {1}, FPS : {2}", latestResultData.frameInfo.frameID, total_delay, 1/total_delay);
         }
 
         //GetComponent<TrackHand>().ReceiveHandData(resultData.handData);
@@ -120,7 +126,16 @@ public class SocketClientManager : MonoBehaviour
         //    );
 
     }
-
+    public Matrix4x4 GetCameraExtrinsic(int frame_id)
+    {
+        return camera_extrinsics[frame_id];
+    }
+    
+    public Matrix4x4 GetCameraIntrinsic(int frame_id)
+    {
+        return camera_intrinsics[frame_id];
+    }
+    
     public void GetLatestResultData(out ResultDataPackage resultDataPackage)
     {
         lock (lock_object)

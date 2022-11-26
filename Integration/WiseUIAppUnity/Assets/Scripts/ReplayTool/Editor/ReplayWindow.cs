@@ -22,14 +22,14 @@ public class ReplayWindow : EditorWindow
     bool isPlaying = false;
 
     [Range(0, 1.0f)]
-    public float transparency_texture = 0.5f;
+    public float transparency = 0.5f;
     public int skip_frame_count = 1;
 
     public GameObject environment;
     public GameObject frame;
     public GameObject runner;
 
-    private void OnGUI()
+    void OnGUI()
     {
         LoadGUI();
         if (isLoaded)
@@ -89,13 +89,13 @@ public class ReplayWindow : EditorWindow
             EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
             EditorGUILayout.PropertyField(serializedObject.FindProperty("frame"), true); // True means show children
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("transparency_texture"), true); // True means show children
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("transparency"), true); // True means show children
             if (EditorGUI.EndChangeCheck())
             {
                 if (frame != null)
                 {
                     Renderer rend = frame.GetComponent<Renderer>();
-                    rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
+                    rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency));
                 }
             }
             //EditorGUILayout.PropertyField(serializedObject.FindProperty("imageFileStream"), true); // True means show children
@@ -186,15 +186,18 @@ public class ReplayWindow : EditorWindow
             throw new Exception("Invalid file index.");
 
         if (frame == null)
-            frame = imageFileStream.CreateImageObject(current_frame_id, transparency_texture);
+            frame = imageFileStream.CreateImageObject(current_frame_id, transparency);
         else
-            imageFileStream.ChangeImageObject(frame, current_frame_id, transparency_texture);
+            imageFileStream.ChangeImageObject(frame, current_frame_id, transparency);
 
         prev_frame_id = current_frame_id;
+
         if (send2server)
         {
             var texture = frame.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
-            runner.GetComponent<SocketClientManager>().SendRGBImage(current_frame_id, texture.ToTexture2D(TextureFormat.BGRA32, Shader.Find("FlipShader")));
+            runner.GetComponent<SocketClientManager>().SendRGBImage(
+                current_frame_id, texture.ToTexture2D(TextureFormat.BGRA32, Shader.Find("FlipShader")),
+                frame.transform.localToWorldMatrix, Matrix4x4.identity);
             runner.GetComponent<TrackHand>().Awake();
             runner.GetComponent<TrackHand>().Update(); //주의 : 결과를 받기까지 지연시간이 있으므로, 바로 위에서 보낸 이미지에 대한 결과가 아님.
         }

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-
+using System.Numerics;
 
 public enum DataFormat
 {
@@ -78,9 +78,7 @@ public class ObjectDataPackage
 }
 [System.Serializable]
 public class FrameInfo
-{
-    //add to instrinsic 
-    //add to extrinsic
+{   
     public int frameID;
     /// <summary>
     /// //홀로렌즈에서 이미지를 서버로 보낸 시점

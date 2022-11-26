@@ -58,12 +58,7 @@ public class ImageFileStream
 
         return environment;
     }
-    public void ChangeTextureTransparency(GameObject imgObject, float transparency)
-    {
-        Renderer rend = imgObject.GetComponent<Renderer>();
-        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency));
-    }
-    public GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency_texture)
+    public GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency)
     {
         //Convert transform.
         var rh = ChangeHandedCoordinateSystem2(pvFrame.PVtoWorldtransform);
@@ -79,7 +74,7 @@ public class ImageFileStream
         float fx = pvFrame.cameraIntrinsic.focalLength.x;
         float fy = pvFrame.cameraIntrinsic.focalLength.y;
         //Create Image Object.
-        GameObject go_PV = CreateImage(pvFrame.timestamp.ToString(), texture, position, rotation, transparency_texture);
+        GameObject go_PV = CreateImage(pvFrame.timestamp.ToString(), texture, position, rotation, transparency);
         go_PV.transform.parent = parent;
         //go_PV.GetComponent<MeshRenderer>().enabled = false;
         go_PV.transform.position = position;
@@ -100,15 +95,15 @@ public class ImageFileStream
 
         return go_PV;
     }
-    public GameObject CreateImageObject(int frame_id, float transparency_texture)
+    public GameObject CreateImageObject(int frame_id, float transparency)
     {
         var pvFrame = CreatePVFrame(frame_id);
-        return CreateImageCameraPair(parentTransform, pvFrame, dataset_path, transparency_texture);
+        return CreateImageCameraPair(parentTransform, pvFrame, dataset_path, transparency);
     }
-    public void ChangeImageObject(GameObject imgObject, int frame_id, float transparency_texture)
+    public void ChangeImageObject(GameObject imgObject, int frame_id, float transparency)
     {
         var pvFrame = CreatePVFrame(frame_id);
-        ChangeImageTransformation(imgObject, pvFrame, dataset_path, transparency_texture);
+        ChangeImageTransformation(imgObject, pvFrame, dataset_path, transparency);
     }
     public PVFrame CreatePVFrame(int frame_id)
     {
@@ -122,7 +117,7 @@ public class ImageFileStream
         var PVtoWorldtransformArray = parts.GetRange(3, parts.Count - 3).Select(i => float.Parse(i)).ToArray();
         return new PVFrame(cameraIntrinsic, timestamp, PVtoWorldtransformArray);
     }
-    public void ChangeImageTransformation(GameObject imgObject, PVFrame pvFrame, string recordingPath, float transparency_texture)
+    public void ChangeImageTransformation(GameObject imgObject, PVFrame pvFrame, string recordingPath, float transparency)
     {
         var rh = ChangeHandedCoordinateSystem2(pvFrame.PVtoWorldtransform);
         Vector3 position = rh.GetColumn(3);
@@ -136,7 +131,7 @@ public class ImageFileStream
         var texture = TextureIO.LoadTexture(texturePath);
         Renderer rend = imgObject.GetComponent<Renderer>();
         rend.sharedMaterial.mainTexture = texture;
-        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
+        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency));
 
         GameObject go_cam = imgObject.transform.Find("Camera").gameObject;
         float fx = pvFrame.cameraIntrinsic.focalLength.x;
@@ -147,7 +142,7 @@ public class ImageFileStream
         go_cam.transform.Translate(Vector3.back * fx * 2 / 1000f, Space.Self);
 
     }
-    GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float transparency_texture)
+    GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float transparency)
     {
         GameObject imgGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
         var collider = imgGO.GetComponent<MeshCollider>();
@@ -157,7 +152,7 @@ public class ImageFileStream
         Renderer rend = imgGO.GetComponent<Renderer>();
         rend.material = new Material(Shader.Find("Somian/Unlit/Transparent"));
         rend.sharedMaterial.mainTexture = texture;
-        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
+        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency));
 
         return imgGO;
     }

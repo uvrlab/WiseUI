@@ -214,7 +214,7 @@ public class UIManager : MonoBehaviour
                 pvImagePlane.GetComponent<MeshRenderer>().material.mainTexture = latestTexture;
                 
                 if(connectButton.IsToggled)
-                    socketClient.SendRGBImage(pvCameraReader.FrameID, latestTexture);
+                    socketClient.SendRGBImage(pvCameraReader.FrameID, latestTexture, Matrix4x4.identity, Matrix4x4.identity);
 
                 if (startDetectionButton.IsToggled)
                 {
