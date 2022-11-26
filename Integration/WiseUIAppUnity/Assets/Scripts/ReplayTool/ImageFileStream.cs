@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.XR.ARSubsystems;
 
 [Serializable]
 public class ImageFileStream 
@@ -15,7 +16,7 @@ public class ImageFileStream
     List<string> frameLines = new List<string>();
     Vector2 principalPoint;
     int imageWidth, imageHeight;
-
+    public string filepath_pointcloud;
     public int imageCount
     {
         get
@@ -23,19 +24,16 @@ public class ImageFileStream
             return frameLines.Count;
         }
     }
-    public ImageFileStream(string dataset_path, Transform parent)
+    public ImageFileStream(){}
+    public ImageFileStream(string dataset_path)
     {
         this.dataset_path = dataset_path;
-        this.parentTransform = parent;
         ////Get directory name;
         DirectoryInfo dinfo = new DirectoryInfo(dataset_path);
         /*
-         * Generate Point Cloud Task 
-         */
-        string filename_pointcloud = string.Format(@"{0}/{1}/{2}", dataset_path, "pinhole_projection", "tsdf-pc.ply");
-        PointCloudGeneratorWarpper.Instance.BuildCloud(filename_pointcloud, parent);
-
-
+            * Generate Point Cloud Task 
+            */
+        filepath_pointcloud = string.Format(@"{0}/{1}/{2}", dataset_path, "pinhole_projection", "tsdf-pc.ply");
         ////Needs to exception handling.
         string filename_pvtxt = string.Format(@"{0}/{1}_pv.txt", dataset_path, dinfo.Name);
         List<string> lines_pvtxt = System.IO.File.ReadAllLines(filename_pvtxt).ToList();
@@ -47,8 +45,23 @@ public class ImageFileStream
         var imageSize = firstLine.GetRange(2, 2).Select(i => int.Parse(i)).ToArray();
         imageWidth = imageSize[0];
         imageHeight = imageSize[1];
-        
+
         frameLines = lines_pvtxt.GetRange(1, lines_pvtxt.Count - 1);
+    }
+    public GameObject CreateEnvironment()
+    {
+        var environment = new GameObject(dataset_path);
+        var pc = PointCloudGeneratorWarpper.Instance.CreatePointCloud(filepath_pointcloud);
+
+        pc.transform.parent = environment.transform;
+        parentTransform = environment.transform;
+
+        return environment;
+    }
+    public void ChangeTextureTransparency(GameObject imgObject, float transparency)
+    {
+        Renderer rend = imgObject.GetComponent<Renderer>();
+        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency));
     }
     public GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency_texture)
     {

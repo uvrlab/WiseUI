@@ -13,7 +13,7 @@ public class ReplayWindow : EditorWindow
     Vector2 scrollPos = Vector2.zero;
 
     [SerializeField]
-    ImageFileStream imageFileStream;
+    ImageFileStream imageFileStream = new ImageFileStream();
     int current_frame_id = -1, prev_frame_id = -1, end_frame_id;
 
     bool send2server = true;
@@ -21,6 +21,7 @@ public class ReplayWindow : EditorWindow
     bool isConnected = false;
     bool isPlaying = false;
 
+    [Range(0, 1.0f)]
     public float transparency_texture = 0.5f;
     public int skip_frame_count = 1;
 
@@ -31,11 +32,15 @@ public class ReplayWindow : EditorWindow
     private void OnGUI()
     {
         LoadGUI();
-        GUILayout.Space(10);
-        SocketConnectionGUI();
-        GUILayout.Space(10);
-        FrameSelectionGUI();
-        GUILayout.Space(10);
+        if (isLoaded)
+        {
+            GUILayout.Space(10);
+            SocketConnectionGUI();
+            GUILayout.Space(10);
+            FrameSelectionGUI();
+            GUILayout.Space(10);
+        }
+   
     }
 
     void LoadGUI()
@@ -48,36 +53,56 @@ public class ReplayWindow : EditorWindow
 
         EditorGUILayout.LabelField("Dataset Path : " + dataset_path, EditorStyles.boldLabel);
 
-        
-        if (GUILayout.Button("Load"))
+        if (!string.IsNullOrEmpty(dataset_path))
         {
-            environment = new GameObject(dataset_path);
-            imageFileStream = new ImageFileStream(dataset_path, environment.transform);
-            frame = null;
-            runner = GameObject.Find("Runner");
-            if (runner == null)
+            if (GUILayout.Button("Load"))
             {
-                runner = new GameObject("Runner");
-                runner.AddComponent<SocketClientManager>();
-                runner.AddComponent<TrackHand>();
-                runner.AddComponent<ARRCObjectronDetector>();
-            }
-            isLoaded = true;
-            
-            current_frame_id = -1;
-            prev_frame_id = -1;
-            end_frame_id = imageFileStream.imageCount - 1;
-        }
+                try
+                {
+                    imageFileStream = new ImageFileStream(dataset_path);
+                    environment = imageFileStream.CreateEnvironment();
 
-        ScriptableObject target = this;
-        SerializedObject serializedObject = new SerializedObject(target);
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("environment"), true); // True means show children
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("frame"), true); // True means show children
-        //EditorGUILayout.PropertyField(serializedObject.FindProperty("imageFileStream"), true); // True means show children
-        
-        serializedObject.ApplyModifiedProperties(); // Remember to apply modified properties
-        serializedObject.Update();
+                    frame = null;
+                    runner = GameObject.Find("Runner");
+                    if (runner == null)
+                    {
+                        runner = new GameObject("Runner");
+                        runner.AddComponent<SocketClientManager>();
+                        runner.AddComponent<TrackHand>();
+                        runner.AddComponent<ARRCObjectronDetector>();
+                    }
+                    isLoaded = true;
+
+                    current_frame_id = -1;
+                    prev_frame_id = -1;
+                    end_frame_id = imageFileStream.imageCount - 1;
+                }
+                catch(Exception ex)
+                {
+                    Debug.LogError(ex);
+                }
+            }
+
+            ScriptableObject target = this;
+            SerializedObject serializedObject = new SerializedObject(target);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("environment"), true); // True means show children
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("runner"), true); // True means show children
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("frame"), true); // True means show children
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("transparency_texture"), true); // True means show children
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (frame != null)
+                {
+                    Renderer rend = frame.GetComponent<Renderer>();
+                    rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
+                }
+            }
+            //EditorGUILayout.PropertyField(serializedObject.FindProperty("imageFileStream"), true); // True means show children
+
+            serializedObject.ApplyModifiedProperties(); // Remember to apply modified properties
+            serializedObject.Update();
+        }
 
         EditorGUILayout.EndVertical();
     }
@@ -132,11 +157,10 @@ public class ReplayWindow : EditorWindow
         EditorGUILayout.BeginVertical(GUI.skin.box);
 
         if(imageFileStream != null)
-            EditorGUILayout.LabelField("Total frames : " + imageFileStream.imageCount);
+            EditorGUILayout.LabelField("Total frames : " + imageFileStream.imageCount, EditorStyles.boldLabel);
 
-        skip_frame_count = EditorGUILayout.IntField("Skip count", skip_frame_count);
-        transparency_texture = EditorGUILayout.FloatField("Transparency", transparency_texture);
         send2server = EditorGUILayout.Toggle("Send data to server", send2server);
+        skip_frame_count = EditorGUILayout.IntField("Skip count", skip_frame_count);
 
         EditorGUILayout.BeginHorizontal();
         current_frame_id = EditorGUILayout.IntField("Current frame id", current_frame_id);

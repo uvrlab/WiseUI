@@ -21,28 +21,25 @@ public class PointCloudGeneratorWarpper
 
     string filepath;
 
-    public void BuildCloud(string filepath, Transform parent = null)
+    public GameObject CreatePointCloud(string filepath)
 	{
         //get filename
         string filename = Path.GetFileName(filepath);
 		GameObject pointCloudObj = new GameObject(filename);
-		CreatePointCloud (pointCloudObj, filepath);
-        if(parent != null)
-            pointCloudObj.transform.parent = parent;
-        //pointCloudObj.transform.localPosition = new Vector3 (0, 0, 0);
-        //pointCloudObj.transform.localRotation = Quaternion.Euler (0, 180, 180);
-	}
 
-	void CreatePointCloud(GameObject pointCloudObj, string filepath)
-	{
-		MeshInfos pointCloudInfo;
-		LoadPointCloudFromXML (pointCloudObj, filepath, out pointCloudInfo);
+        MeshInfos pointCloudInfo;
+        LoadPointCloudFromXML(pointCloudObj, filepath, out pointCloudInfo);
         pointCloudObj.AddComponent<PointCloudInfo>();
         pointCloudObj.GetComponent<PointCloudInfo>().vertexCount = pointCloudInfo.vertexCount;
-       
+
         int count = pointCloudInfo.vertexCount;
         Debug.LogFormat("The number of points of \"{0}\" : {1}", filepath, count);
+        
+        return pointCloudObj;
+        //pointCloudObj.transform.localPosition = new Vector3 (0, 0, 0);
+        //pointCloudObj.transform.localRotation = Quaternion.Euler (0, 180, 180);
     }
+
     void LoadPointCloudFromXML(GameObject pointCloudObj, string filepath, out MeshInfos pointcloudInfo)
     {
         PointCloudGenerator ptGen = new PointCloudGenerator();

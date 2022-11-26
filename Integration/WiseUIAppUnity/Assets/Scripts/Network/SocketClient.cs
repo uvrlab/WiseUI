@@ -69,8 +69,7 @@ public class SocketClient
             }
             catch (ObjectDisposedException e)
             {
-                Debug.LogException(e);
-                int a;
+                //Debug.LogException(e);
             }
             
         }
