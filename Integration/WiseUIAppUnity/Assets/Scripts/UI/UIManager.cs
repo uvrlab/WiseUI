@@ -48,9 +48,9 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        pvCameraReader = GameObject.Find("Runnner").GetComponent<HoloLens2PVCameraReader>();
-        socketClient = GameObject.Find("Runnner").GetComponent<SocketClientManager>();
-        objectDetector = GameObject.Find("Runnner").GetComponent<ARRCObjectronDetector>();
+        pvCameraReader = GameObject.Find("Runner").GetComponent<HoloLens2PVCameraReader>();
+        socketClient = GameObject.Find("Runner").GetComponent<SocketClientManager>();
+        objectDetector = GameObject.Find("Runner").GetComponent<ARRCObjectronDetector>();
         
         confButton = transform.Find("Setting").GetComponent<Interactable>();
         confButton.OnClick.AddListener(OnConfigurationButtonClick);

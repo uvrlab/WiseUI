@@ -1,12 +1,17 @@
-﻿using System.IO;
+﻿#define USE_OPENCV
+
+using System.IO;
 using UnityEngine;
+
+#if USE_OPENCV
 using OpenCvSharp;
+#endif
 
 namespace ARRC.ARRCTexture
 {
     public static class TextureIO
     {
-        public static Texture2D ConvertRenderTexturetoTexture2D(RenderTexture texture, TextureFormat textureFormat)
+        public static Texture2D ToTexture2D(RenderTexture texture, TextureFormat textureFormat)
         {
             
             RenderTexture backup = RenderTexture.active;
@@ -18,10 +23,32 @@ namespace ARRC.ARRCTexture
 
             return texture2d;
         }
+        public static Texture2D ToTexture2D(this Texture texture, TextureFormat textureFormat, Shader shader = null)
+        {
+            int width = texture.width;
+            int height = texture.height;
+            //save the active render texture
+            RenderTexture temp = RenderTexture.active;
 
+            //create new render texture and copy from the target texture
+            RenderTexture copiedRenderTexture = new RenderTexture(width, height, 0);
+            Graphics.Blit(texture, copiedRenderTexture, new Material(shader));
+            //change active render texture
+            RenderTexture.active = copiedRenderTexture;
+
+            //copy to texture 2d
+            Texture2D convertedImage = new Texture2D(width, height, textureFormat, false);
+            convertedImage.ReadPixels(new UnityEngine.Rect(0, 0, width, height), 0, 0);
+            convertedImage.Apply();
+
+            RenderTexture.active = temp;
+
+            return convertedImage;
+        }
         public static void WriteTexture(RenderTexture texture, string filename, TextureFormat textureFormat)
         {
-            WriteTexture(ConvertRenderTexturetoTexture2D(texture, textureFormat), filename);
+           
+            WriteTexture(texture.ToTexture2D(textureFormat), filename);
         }
 
         public static void WriteTexture(Texture2D texture, string filename)
@@ -90,7 +117,7 @@ namespace ARRC.ARRCTexture
         }
 
 
-//#ifdef USE_OPENCVSHARP
+#if USE_OPENCV
         public static Texture2D LoadTexture(string filepath, bool resize = false, int equirectangularWidth = 0)
         {
             Mat mat_source = LoadImage(filepath, resize, equirectangularWidth);
@@ -270,7 +297,7 @@ namespace ARRC.ARRCTexture
         }
 
      
-
+#endif
     }
-//#endif
+
 }

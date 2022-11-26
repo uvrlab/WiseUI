@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using UnityEngine;
 
 public class SocketClient
 {
@@ -64,12 +65,14 @@ public class SocketClient
             }
             catch (SocketException e)
             {
-                //Debug.LogError(e.Message);
+                Debug.LogException(e);
             }
             catch (ObjectDisposedException e)
             {
-
+                Debug.LogException(e);
+                int a;
             }
+            
         }
     }
 
@@ -82,7 +85,7 @@ public class SocketClient
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.ToString());
+            Debug.LogException(e);
         }
     }
 
@@ -107,7 +110,7 @@ public class SocketClient
         }
         catch (SocketException e)
         {
-             //Debug.LogError(e.Message);
+            //Debug.LogException(e);
         }
         catch(ObjectDisposedException e)
         {

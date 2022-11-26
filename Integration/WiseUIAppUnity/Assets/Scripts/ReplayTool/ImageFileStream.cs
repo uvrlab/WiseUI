@@ -1,11 +1,56 @@
 using ARRC.ARRCTexture;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-public static class ImageFileStream 
+[Serializable]
+public class ImageFileStream 
 {
-    public static GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency_texture)
+    Transform parentTransform;
+    string dataset_path;
+    List<string> frameLines = new List<string>();
+    Vector2 principalPoint;
+    int imageWidth, imageHeight;
+
+    public int imageCount
+    {
+        get
+        {
+            return frameLines.Count;
+        }
+    }
+    public ImageFileStream(string dataset_path, Transform parent)
+    {
+        this.dataset_path = dataset_path;
+        this.parentTransform = parent;
+        ////Get directory name;
+        DirectoryInfo dinfo = new DirectoryInfo(dataset_path);
+        /*
+         * Generate Point Cloud Task 
+         */
+        string filename_pointcloud = string.Format(@"{0}/{1}/{2}", dataset_path, "pinhole_projection", "tsdf-pc.ply");
+        PointCloudGeneratorWarpper.Instance.BuildCloud(filename_pointcloud, parent);
+
+
+        ////Needs to exception handling.
+        string filename_pvtxt = string.Format(@"{0}/{1}_pv.txt", dataset_path, dinfo.Name);
+        List<string> lines_pvtxt = System.IO.File.ReadAllLines(filename_pvtxt).ToList();
+
+        ////Get principal points, image size
+        var firstLine = lines_pvtxt[0].Split(',').ToList();
+        float[] pp = firstLine.GetRange(0, 2).Select(i => float.Parse(i)).ToArray();
+        principalPoint = new Vector2(pp[0], pp[1]);
+        var imageSize = firstLine.GetRange(2, 2).Select(i => int.Parse(i)).ToArray();
+        imageWidth = imageSize[0];
+        imageHeight = imageSize[1];
+        
+        frameLines = lines_pvtxt.GetRange(1, lines_pvtxt.Count - 1);
+    }
+    public GameObject CreateImageCameraPair(Transform parent, PVFrame pvFrame, string recordingPath, float transparency_texture)
     {
         //Convert transform.
         var rh = ChangeHandedCoordinateSystem2(pvFrame.PVtoWorldtransform);
@@ -42,11 +87,58 @@ public static class ImageFileStream
 
         return go_PV;
     }
-    static GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float transparency_texture)
+    public GameObject CreateImageObject(int frame_id, float transparency_texture)
+    {
+        var pvFrame = CreatePVFrame(frame_id);
+        return CreateImageCameraPair(parentTransform, pvFrame, dataset_path, transparency_texture);
+    }
+    public void ChangeImageObject(GameObject imgObject, int frame_id, float transparency_texture)
+    {
+        var pvFrame = CreatePVFrame(frame_id);
+        ChangeImageTransformation(imgObject, pvFrame, dataset_path, transparency_texture);
+    }
+    public PVFrame CreatePVFrame(int frame_id)
+    {
+        var strLine = frameLines[frame_id];
+        var parts = strLine.Split(',').ToList();
+        long timestamp = long.Parse(parts[0]);
+        float fx = float.Parse(parts[1]);
+        float fy = float.Parse(parts[2]);
+
+        CameraIntrinsic cameraIntrinsic = new CameraIntrinsic(fx, fy, principalPoint.x, principalPoint.y, imageWidth, imageHeight);
+        var PVtoWorldtransformArray = parts.GetRange(3, parts.Count - 3).Select(i => float.Parse(i)).ToArray();
+        return new PVFrame(cameraIntrinsic, timestamp, PVtoWorldtransformArray);
+    }
+    public void ChangeImageTransformation(GameObject imgObject, PVFrame pvFrame, string recordingPath, float transparency_texture)
+    {
+        var rh = ChangeHandedCoordinateSystem2(pvFrame.PVtoWorldtransform);
+        Vector3 position = rh.GetColumn(3);
+        Quaternion rotation = rh.rotation;
+        
+        imgObject.transform.position = position;
+        imgObject.transform.rotation = rotation;
+        imgObject.transform.Rotate(90, 0, 0);
+        
+        string texturePath = string.Format("{0}/PV/{1}.png", recordingPath, pvFrame.timestamp);
+        var texture = TextureIO.LoadTexture(texturePath);
+        Renderer rend = imgObject.GetComponent<Renderer>();
+        rend.sharedMaterial.mainTexture = texture;
+        rend.sharedMaterial.SetColor("_Color", new Color(1f, 1f, 1f, transparency_texture));
+
+        GameObject go_cam = imgObject.transform.Find("Camera").gameObject;
+        float fx = pvFrame.cameraIntrinsic.focalLength.x;
+        float fy = pvFrame.cameraIntrinsic.focalLength.y;
+        go_cam.transform.localPosition = Vector3.zero;
+        go_cam.transform.localRotation = Quaternion.identity;
+        go_cam.transform.Rotate(new Vector3(90, 180, 0));
+        go_cam.transform.Translate(Vector3.back * fx * 2 / 1000f, Space.Self);
+
+    }
+    GameObject CreateImage(string imageName, Texture2D texture, Vector3 position, Quaternion rotation, float transparency_texture)
     {
         GameObject imgGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
         var collider = imgGO.GetComponent<MeshCollider>();
-        Object.DestroyImmediate(collider);
+        UnityEngine.Object.DestroyImmediate(collider);
 
         imgGO.name = imageName;
         Renderer rend = imgGO.GetComponent<Renderer>();
@@ -56,7 +148,7 @@ public static class ImageFileStream
 
         return imgGO;
     }
-    static GameObject CreateCamera(string camName, CameraIntrinsic intrinsic)
+    GameObject CreateCamera(string camName, CameraIntrinsic intrinsic)
     {
         //Set extrinsic.
         //Matrix4x4 extrinsic_rightHaned = extrinsic;// ChangeHandedCoordinateSystem2(extrinsic);
@@ -89,7 +181,7 @@ public static class ImageFileStream
     }
 
 
-    static Matrix4x4 ChangeHandedCoordinateSystem2(Matrix4x4 src)
+    Matrix4x4 ChangeHandedCoordinateSystem2(Matrix4x4 src)
     {
         Vector3 pos = src.GetColumn(3);
         Vector3 eulerAngle = src.rotation.eulerAngles;
