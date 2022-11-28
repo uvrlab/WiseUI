@@ -3,7 +3,6 @@
 # opencv-python
 
 # HandTracking모듈에서 필요한 것.
-mediapipe==0.9.0
 certifi==2021.5.30
 chumpy==0.70
 numpy==1.21.1
@@ -18,6 +17,7 @@ typing-extensions==3.10.0.0
 PyYAML==6.0
 matplotlib==3.6.2
 termcolor==1.1.0
+mediapipe==0.9.0
 
 --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu111
 torch==1.8.2+cu111
