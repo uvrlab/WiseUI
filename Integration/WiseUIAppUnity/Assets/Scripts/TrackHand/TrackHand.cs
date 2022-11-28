@@ -29,15 +29,13 @@ public class TrackHand : MonoBehaviour
             /// <summary>
             /// Test
             /// </summary>
-            var finger_tip = GameObject.Find("FingerTip").transform;
+            //var finger_tip = GameObject.Find("FingerTip").transform;
+            //var matrix_finger_tip = finger_tip.localToWorldMatrix;
+            //var image = tcpClientManager.GetImage(frameInfo.frameID);
+            //var extrinsic = tcpClientManager.GetCameraExtrinsic(frameInfo.frameID);
+            //var intrinsic = tcpClientManager.GetCameraIntrinsic(frameInfo.frameID);
+            //var x_2d = intrinsic * extrinsic * matrix_finger_tip;
             
-            var matrix_finger_tip = finger_tip.localToWorldMatrix;
-            
-            var extrinsic = tcpClientManager.GetCameraExtrinsic(frameInfo.frameID);
-            var intrinsic = tcpClientManager.GetCameraIntrinsic(frameInfo.frameID);
-            var x_2d = intrinsic * extrinsic * matrix_finger_tip;
-            
-            Debug.Log(Screen.width / 2);
             //x_2d = I*E*X_3D
 
 
