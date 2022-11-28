@@ -11,4 +11,4 @@ cd handtracker
 mkdir checkpoint
 '''
 Download pretrained model and locate at 
-'WISEUIServer/handtracker/checkpoint/[model_name]/[checkpoint.pth]': https://www.dropbox.com/s/q5ilwtafdmlfeia/SAR-R34-S2-65-67.zip?dl=0
+'WISEUIServer/handtracker/checkpoint/[model_name]/[checkpoint.pth]': https://www.dropbox.com/s/frp7cil5eeizo5b/SAR_refineWeight_cross_v2_extraTrue_resnet34_Epochs50.zip?dl=0
