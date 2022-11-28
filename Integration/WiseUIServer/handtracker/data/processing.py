@@ -381,6 +381,14 @@ def augmentation(img, bbox, data_split, exclude_flip=False):
 
     return img, trans, inv_trans, rot, do_flip
 
+def augmentation_real(img, bbox, flip=False):
+    scale, rot, transl, color_scale, do_flip = 1.0, 0.0, (0.0, 0.0), np.array([1, 1, 1]), flip
+    img, trans, inv_trans, trans_joint \
+        = generate_patch_image(img, bbox, scale, rot, transl, do_flip, cfg.input_img_shape)
+    img = np.clip(img * color_scale[None, None, :], 0, 255)
+
+    return img, trans, inv_trans, rot, do_flip
+
 def generate_patch_image(cvimg, bbox, scale, rot, transl, do_flip, out_shape):
     img = cvimg.copy()
     img_height, img_width, img_channels = img.shape

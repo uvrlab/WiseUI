@@ -873,10 +873,10 @@ class SAR_crossWeight_wVis_light(nn.Module):
 
 def get_model():
     if cfg.extra:
-        return SAR_crossWeight_wVis_light()
+        # return SAR_crossWeight_wVis_light()
         # return SAR_crossWeight()
         # return SAR_frontWeight()
-        # return SAR_refineWeight()
+        return SAR_refineWeight()
     else:
         return SAR()
 

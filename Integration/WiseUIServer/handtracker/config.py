@@ -8,12 +8,12 @@ class Config:
 
     # modifiable
     flag_vis = False
-    extra = False
+    extra = True
 
     continue_train = False
     reInit_optimizer = False
-    # checkpoint = './handtracker/checkpoint/SAR_refineWeight_cross_v2_extraTrue_resnet34_Epochs50/checkpoint.pth'
-    checkpoint = './handtracker/checkpoint/SAR-R34-S2-65-67.pth'  # put the path of the trained model's weights here
+    checkpoint = './handtracker/checkpoint/SAR_refineWeight_cross_v2_extraTrue_resnet34_Epochs50/checkpoint.pth'
+    # checkpoint = './handtracker/checkpoint/SAR-R34-S2-65-67.pth'  # put the path of the trained model's weights here
 
     extra_width = 64
     # network
