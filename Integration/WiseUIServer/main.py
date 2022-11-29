@@ -3,12 +3,12 @@ import time
 
 from SocketServer.type_definitions import HoloLens2PVImageData, HoloLens2SensorData
 from SocketServer.StreamServer import StreamServer
-#from handtracker.module_SARTE import HandTracker
+from handtracker.module_SARTE import HandTracker
 # import track_object
 import cv2
 
 
-#track_hand = HandTracker()
+track_hand = HandTracker()
 
 def processing_loop(client_obj):
     while True:
@@ -26,7 +26,7 @@ def processing_loop(client_obj):
             cv2.waitKey(1)
 
             result_object = None #track_object.Process(pv_frame.data)
-            result_hand = None #track_hand.Process(rgb_image)
+            result_hand = track_hand.Process(pv_frame.data)
 
             """ Packing data for sending to hololens """
             resultData = dict()
@@ -53,15 +53,20 @@ def encode_hand_data(hand_result):
     """ Example """
     handDataPackage = dict()
     num_joints = 21
-    joints = list()
-    for id in range(num_joints):
-        joint = dict()
-        joint['id'] = id
-        joint['x'] = 1#float(hand_result[id, 0])
-        joint['y'] = 1#float(hand_result[id, 1])
-        joint['z'] = 1#float(hand_result[id, 2])
-        joints.append(joint)
-    handDataPackage['joints'] = joints
+    num_hand = 0
+
+    for joint_uvd in hand_result:
+        joints = list()
+        for id in range(num_joints):
+            joint = dict()
+            joint['id'] = id
+            joint['u'] = float(joint_uvd[id, 0])
+            joint['v'] = float(joint_uvd[id, 1])
+            joint['d'] = float(joint_uvd[id, 2])
+            joints.append(joint)
+        dict_key = 'joints_{}'.format(num_hand)
+        handDataPackage[dict_key] = joints
+        num_hand += 1
 
     return handDataPackage
 
