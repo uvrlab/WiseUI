@@ -55,7 +55,7 @@ class HandTracker():
         bbox_list, img_crop_list, img2bb_trans_list, bb2img_trans_list, flag_flip_list = self.extract_hand(img)
 
         joint_uvd_list = []
-        mesh_uvd_list = []
+        # mesh_uvd_list = []
         if len(bbox_list) == 0:
             joint_uvd = np.zeros((21, 3), dtype=np.float32)
             joint_uvd_list.append(joint_uvd)
@@ -65,10 +65,10 @@ class HandTracker():
             debug_i = 0
             for bbox, img_crop, img2bb_trans, bb2img_trans, flag_flip in \
                     zip(bbox_list, img_crop_list, img2bb_trans_list, bb2img_trans_list, flag_flip_list):
-                crop_name = 'crop_{}'.format(debug_i)
-                debug_i += 1
-                cv2.imshow(crop_name, img_crop/255.)
-                cv2.waitKey(1)
+                # crop_name = 'crop_{}'.format(debug_i)
+                # debug_i += 1
+                # cv2.imshow(crop_name, img_crop/255.)
+                # cv2.waitKey(1)
 
                 # transform img
                 img_pil = cv2pil(img_crop)
@@ -127,11 +127,11 @@ class HandTracker():
                 # mesh_uvd_list.append(mesh_uvd)
 
             ### visualize output in server ###
-            img_joint = copy.deepcopy(img_cv)
-            for joint_uvd in joint_uvd_list:
-                img_joint = draw_2d_skeleton(img_joint, joint_uvd)
-            cv2.imshow('img_cv', img_joint)
-            cv2.waitKey(1)
+            # img_joint = copy.deepcopy(img_cv)
+            # for joint_uvd in joint_uvd_list:
+            #     img_joint = draw_2d_skeleton(img_joint, joint_uvd)
+            # cv2.imshow('img_cv', img_joint)
+            # cv2.waitKey(1)
 
             return joint_uvd_list
 
@@ -164,21 +164,22 @@ class HandTracker():
                     else:
                         idx_to_coord_1 = idx_to_coordinates
 
-            image.flags.writeable = True
-            # image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    mp_drawing.draw_landmarks(
-                        image,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        mp_drawing_styles.get_default_hand_landmarks_style(),
-                        mp_drawing_styles.get_default_hand_connections_style())
-            # Flip the image horizontally for a selfie-view display.
-            # already fliped x axis   cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
-            image = cv2.flip(image, 1)
-            cv2.imshow('MediaPipe Hands', image)
-            cv2.waitKey(1)
+            ### visualize mediapipe output ###
+            # image.flags.writeable = True
+            # # image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            # if results.multi_hand_landmarks:
+            #     for hand_landmarks in results.multi_hand_landmarks:
+            #         mp_drawing.draw_landmarks(
+            #             image,
+            #             hand_landmarks,
+            #             mp_hands.HAND_CONNECTIONS,
+            #             mp_drawing_styles.get_default_hand_landmarks_style(),
+            #             mp_drawing_styles.get_default_hand_connections_style())
+            # # Flip the image horizontally for a selfie-view display.
+            # # already fliped x axis   cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+            # image = cv2.flip(image, 1)
+            # cv2.imshow('MediaPipe Hands', image)
+            # cv2.waitKey(1)
 
         return self.extract_roi_list(results, img, idx_to_coord_0, idx_to_coord_1, image_rows, image_cols)
 
