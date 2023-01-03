@@ -19,21 +19,22 @@ public class TrackHand : MonoBehaviour
         try
         {
             ResultDataPackage frameData;
-            // 1. °¡Àå ÃÖ½Å µ¥ÀÌÅÍ¸¦ °¡Á®¿À´Â ¹æ¹ý.(´©¶ôµÈ frame »ý±æ ¼ö ÀÖÁö¸¸ delay ¾øÀ½.)
+            // 1. ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ frame ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ delay ï¿½ï¿½ï¿½ï¿½.)
             tcpClientManager.GetLatestResultData(out frameData);
             
-            // 2. µµÂøÇÑ ¼ø¼­´ë·Î µ¥ÀÌÅÍ¸¦ °¡Á®¿À´Â ¹æ¹ý. (delay »ý±æ ¼ö ÀÖÁö¸¸ ´©¶ôµÈ frame ¾øÀ½.)
+            // 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½. (delay ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ frame ï¿½ï¿½ï¿½ï¿½.)
             //tcpClientManager.GetOldestResultData(out frameData);
             var frameInfo = frameData.frameInfo;
             var handData = frameData.handDataPackage;
 
+            /*
             var joints_0 = handData["joints_0"];
             // joints_0[0~20]['u', 'v', 'd'] 
 
             if(handData.Count > 1){
                 var joints_1 = handData["joints_1"];
             }
-
+            */
 
             /// <summary>
             /// Test
@@ -52,7 +53,7 @@ public class TrackHand : MonoBehaviour
         }
         catch (NoDataReceivedExecption e)
         {
-            //Debug.Log(e); // ´õ ÀÌ»ó ¹Þ¾Æ¿Ã µ¥ÀÌÅÍ°¡ ¾øÀ» ¶§ ¹ß»ýÇÏ´Â ¿¹¿Ü.
+            //Debug.Log(e); // ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½Þ¾Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½.
         }
     }
 
