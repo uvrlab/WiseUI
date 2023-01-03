@@ -1,4 +1,4 @@
 [Bb]uild/
-__pycache__/
+.__pycache__/
 /Integration/WiseUIServer/handtracker/checkpoint/*
-idea/
+.idea/

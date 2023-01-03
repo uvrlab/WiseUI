@@ -127,11 +127,11 @@ class HandTracker():
                 # mesh_uvd_list.append(mesh_uvd)
 
             ### visualize output in server ###
-            img_joint = copy.deepcopy(img_cv)
-            for joint_uvd in joint_uvd_list:
-                img_joint = draw_2d_skeleton(img_joint, joint_uvd)
-            cv2.imshow('img_cv', img_joint)
-            cv2.waitKey(1)
+            # img_joint = copy.deepcopy(img_cv)
+            # for joint_uvd in joint_uvd_list:
+            #     img_joint = draw_2d_skeleton(img_joint, joint_uvd)
+            # cv2.imshow('img_cv', img_joint)
+            # cv2.waitKey(1)
 
             return joint_uvd_list
 
