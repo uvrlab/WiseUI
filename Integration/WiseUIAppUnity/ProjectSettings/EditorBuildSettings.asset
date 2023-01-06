@@ -11,7 +11,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/test_detection.unity
     guid: a9fab51b63386c24ea34f425f211a685
+  - enabled: 0
+    path: Assets/Scenes/HoloLens2 PV Camera Test.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects:
-    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 977d2ae78dfd6064cba4abc7dc7484d0, type: 2}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 57a08e2625fdb4a4cb430f0d36cc8424, type: 2}
-    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: c92d740442d326143bcf7feabded2ab8, type: 2}
+    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 1e11ec2ddd695fa40a76269192e0c77c, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: c6f93b129cecd834e83407010953377f, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 8db4a579ef2b5ab46b0990785b83e7c4, type: 2}
