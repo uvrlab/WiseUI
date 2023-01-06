@@ -24,15 +24,15 @@ public class TrackHand : MonoBehaviour
             
             // 2. 도착한 순서대로 데이터를 가져오는 방법. (delay 생길 수 있지만 누락된 frame 없음.)
             //tcpClientManager.GetOldestResultData(out frameData);
-            var frameInfo = frameData.frameInfo;
-            var handData = frameData.handDataPackage;
+            // var frameInfo = frameData.frameInfo;
+            // var handData = frameData.handDataPackage;
 
-            var joints_0 = handData["joints_0"];
-            // joints_0[0~20]['u', 'v', 'd'] 
+            // var joints_0 = handData["joints_0"];
+            // // joints_0[0~20]['u', 'v', 'd'] 
 
-            if(handData.Count > 1){
-                var joints_1 = handData["joints_1"];
-            }
+            // if(handData.Count > 1){
+            //     var joints_1 = handData["joints_1"];
+            // }
 
 
             /// <summary>
