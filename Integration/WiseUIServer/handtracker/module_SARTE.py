@@ -38,10 +38,11 @@ class HandTracker():
 
         self.crop_size = 320
 
-        self.prev_bbox_list = []
+        self.prev_bbox_list = [[0, 0,  self.crop_size,  self.crop_size]]
         self.prev_flag_flip_list = []
 
     def Process(self, img): # input : img_cv
+        print("processing ...")
         if img.shape[-1] == 4:
             img = img[:, :, :-1]
         imgSize = (img.shape[0], img.shape[1])  # (360, 640)
@@ -57,6 +58,7 @@ class HandTracker():
         joint_uvd_list = []
         # mesh_uvd_list = []
         if len(bbox_list) == 0:
+            print("no bbox, return zero joint")
             joint_uvd = np.zeros((21, 3), dtype=np.float32)
             joint_uvd_list.append(joint_uvd)
             return joint_uvd_list
@@ -125,13 +127,14 @@ class HandTracker():
 
                 joint_uvd_list.append(joint_uvd)
                 # mesh_uvd_list.append(mesh_uvd)
+            print("processing ... done")
 
             ### visualize output in server ###
-            # img_joint = copy.deepcopy(img_cv)
-            # for joint_uvd in joint_uvd_list:
-            #     img_joint = draw_2d_skeleton(img_joint, joint_uvd)
-            # cv2.imshow('img_cv', img_joint)
-            # cv2.waitKey(1)
+            img_joint = copy.deepcopy(img_cv)
+            for joint_uvd in joint_uvd_list:
+                img_joint = draw_2d_skeleton(img_joint, joint_uvd)
+            cv2.imshow('img_cv', img_joint)
+            cv2.waitKey(1)
 
             return joint_uvd_list
 
@@ -197,11 +200,9 @@ class HandTracker():
             for bbox, flag_flip in zip(bbox_list, flag_flip_list):
                 img_crop, img2bb_trans, bb2img_trans, _, _, = augmentation_real(img, bbox, flip=flag_flip)
 
-                bbox_list.append(bbox)
                 img_crop_list.append(img_crop)
                 img2bb_trans_list.append(img2bb_trans)
                 bb2img_trans_list.append(bb2img_trans)
-                flag_flip_list.append(flag_flip)
 
         elif idx_to_coord_0 is not None and idx_to_coord_1 is not None:
             x_0_min = min(idx_to_coord_0.values(), key=lambda x: x[0])[0]

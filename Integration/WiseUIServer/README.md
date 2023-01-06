@@ -4,6 +4,10 @@
 - CUDA 11.1
 - requirements.txt
 
+...currently
+- Python 3.8.15
+- CUDA 11.7
+
 
 ## Setup
 '''
