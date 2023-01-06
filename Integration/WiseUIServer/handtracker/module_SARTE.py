@@ -38,8 +38,8 @@ class HandTracker():
 
         self.crop_size = 320
 
-        self.prev_bbox_list = [[0, 0,  self.crop_size,  self.crop_size]]
-        self.prev_flag_flip_list = []
+        # self.prev_bbox_list = []
+        # self.prev_flag_flip_list = []
 
     def Process(self, img): # input : img_cv
         print("processing ...")
@@ -192,17 +192,10 @@ class HandTracker():
         # img_half = int(image_cols / 2)
         # if x_0_min > img_half:
 
-        # if tracking fails, use the previous bbox
+        # if tracking fails, use the previous bbox (X)
+        # if tracking fails, return zero value hand. For debugging
         if idx_to_coord_0 is None and idx_to_coord_1 is None:
-            bbox_list = self.prev_bbox_list
-            flag_flip_list = self.prev_flag_flip_list
-
-            for bbox, flag_flip in zip(bbox_list, flag_flip_list):
-                img_crop, img2bb_trans, bb2img_trans, _, _, = augmentation_real(img, bbox, flip=flag_flip)
-
-                img_crop_list.append(img_crop)
-                img2bb_trans_list.append(img2bb_trans)
-                bb2img_trans_list.append(bb2img_trans)
+            print("no bounding box")
 
         elif idx_to_coord_0 is not None and idx_to_coord_1 is not None:
             x_0_min = min(idx_to_coord_0.values(), key=lambda x: x[0])[0]
@@ -252,8 +245,8 @@ class HandTracker():
             bb2img_trans_list.append(bb2img_trans)
             flag_flip_list.append(flag_flip)
 
-        self.prev_bbox_list = copy.deepcopy(bbox_list)
-        self.prev_flag_flip_list = copy.deepcopy(flag_flip_list)
+        # self.prev_bbox_list = copy.deepcopy(bbox_list)
+        # self.prev_flag_flip_list = copy.deepcopy(flag_flip_list)
 
         return bbox_list, img_crop_list, img2bb_trans_list, bb2img_trans_list, flag_flip_list
 

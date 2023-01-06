@@ -28,7 +28,7 @@ def processing_loop(client_obj):
 
             result_object = None #track_object.Process(pv_frame.data)
             result_hand = track_hand.Process(pv_frame.data)
-
+            print("hand data : ", str(result_hand))
             """ Packing data for sending to hololens """
             resultData = dict()
             resultData['frameInfo'] = pv_frame.encode_frame_info()

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+
 
 public class TrackHand : MonoBehaviour
 {
@@ -27,6 +29,14 @@ public class TrackHand : MonoBehaviour
             // var frameInfo = frameData.frameInfo;
             // var handData = frameData.handDataPackage;
 
+            // Debug.LogFormat("frameID : {0}, handdata : {1},", frameData.frameInfo, frameData.handDataPackage.joints.GetType());
+
+            // HandDataPackage handData = frameData.handDataPackage;
+            Debug.LogFormat("handdata : {0},", frameData.handDataPackage.joints.GetType());
+            Debug.LogFormat("handdata len : {0},", frameData.handDataPackage.joints.Count);
+
+            // string str = handData.joints[0].x.ToString();
+            // Console.WriteLine(str); 
             // var joints_0 = handData["joints_0"];
             // // joints_0[0~20]['u', 'v', 'd'] 
 
@@ -52,7 +62,7 @@ public class TrackHand : MonoBehaviour
         }
         catch (NoDataReceivedExecption e)
         {
-            //Debug.Log(e); // 더 이상 받아올 데이터가 없을 때 발생하는 예외.
+            Debug.Log(e); // 더 이상 받아올 데이터가 없을 때 발생하는 예외.
         }
     }
 
