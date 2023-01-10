@@ -10,11 +10,23 @@ public class TrackHand : MonoBehaviour
     public SocketClientManager tcpClientManager;
     public GameObject handMesh;
 
+     /*
+        1. On Awake, instantiate hand structure as child of handMesh(consider as wrist)
+        1.1 create sphere on each joints
+        1.2 create bar relative on joints position
+
+        2. On Update, update each hand joint mesh transform
+        2.1 extract depth of joint[0] (wrist)
+        2.2 apply relative depth of each joints
+    */
+
     // Start is called before the first frame update
     public void Awake()
     {
         tcpClientManager = GetComponent<SocketClientManager>();
         handMesh = GameObject.Find("HandMesh").GetComponent<GameObject>();
+      
+
     }
 
     
