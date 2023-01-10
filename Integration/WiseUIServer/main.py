@@ -28,13 +28,15 @@ def processing_loop(client_obj):
 
             result_object = None #track_object.Process(pv_frame.data)
             result_hand = track_hand.Process(pv_frame.data)
-            print("hand data : ", str(result_hand))
+
             """ Packing data for sending to hololens """
             resultData = dict()
             resultData['frameInfo'] = pv_frame.encode_frame_info()
             resultData['objectDataPackage'] = encode_object_data(result_object)
             resultData['handDataPackage'] = encode_hand_data(result_hand)
 
+            # with open("C:/Woojin/research/sample.json", "w") as json_file:
+            #     json.dump(resultData, json_file)
             """ Send data """
             resultBytes = json.dumps(resultData).encode('utf-8')
             #print("bytes of total : {}".format(len(resultBytes)))
@@ -52,22 +54,25 @@ def encode_hand_data(hand_result):
     """ Encode hand data to json format """
 
     """ Example """
+    """
+    handDataPackage['joints_0']
+    handDataPackage['joints_1']
+    if the hand is not detected, returns zero value joints 
+    """
     handDataPackage = dict()
+    joints = list()
     num_joints = 21
-    num_hand = 0
 
     for joint_uvd in hand_result:
-        joints = list()
         for id in range(num_joints):
             joint = dict()
-            joint['id'] = id
+            joint['id'] = int(id)
             joint['u'] = float(joint_uvd[id, 0])
             joint['v'] = float(joint_uvd[id, 1])
             joint['d'] = float(joint_uvd[id, 2])
             joints.append(joint)
-        dict_key = 'joints_{}'.format(num_hand)
-        handDataPackage[dict_key] = joints
-        num_hand += 1
+    print("joints list len in pack : ", len(joints))
+    handDataPackage['joints'] = joints
 
     return handDataPackage
 

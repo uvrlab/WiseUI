@@ -68,7 +68,10 @@ public class SocketClientManager : MonoBehaviour
         }
     }
 
-    public void Connect(string serverIP, int serverPort, int maxBufferSize = 4096)
+    /* maxBufferSize
+    Currently require 4096 for one hand, 8192 for 2 hands. need to optimize on server side.    
+    */
+    public void Connect(string serverIP, int serverPort, int maxBufferSize = 8192)
     {
         IsNewHandDataReceived = false;
         IsNewObjectDataReceived = false;

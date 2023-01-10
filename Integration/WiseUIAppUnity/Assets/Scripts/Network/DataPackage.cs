@@ -45,7 +45,7 @@ public class RGBImageHeader
 public class Joint
 {
     public int id;
-    public float x, y, z;
+    public float u, v, d;
     //public float q1, q2, q3, q4; 
 }
 
@@ -54,7 +54,8 @@ public class Joint
 public class HandDataPackage
 {
     //필요한 거 정의
-     public List<Joint> joints = new List<Joint>();
+    public List<Joint> joints = new List<Joint>();
+
 }
 
 [System.Serializable]

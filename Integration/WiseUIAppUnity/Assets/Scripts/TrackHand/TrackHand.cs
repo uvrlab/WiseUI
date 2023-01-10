@@ -8,11 +8,13 @@ using System.Linq;
 public class TrackHand : MonoBehaviour
 {
     public SocketClientManager tcpClientManager;
-    
+    public GameObject handMesh;
+
     // Start is called before the first frame update
     public void Awake()
     {
         tcpClientManager = GetComponent<SocketClientManager>();
+        handMesh = GameObject.Find("HandMesh").GetComponent<GameObject>();
     }
 
     
@@ -31,10 +33,10 @@ public class TrackHand : MonoBehaviour
 
             // Debug.LogFormat("frameID : {0}, handdata : {1},", frameData.frameInfo, frameData.handDataPackage.joints.GetType());
 
-            // HandDataPackage handData = frameData.handDataPackage;
-            Debug.LogFormat("handdata : {0},", frameData.handDataPackage.joints.GetType());
-            Debug.LogFormat("handdata len : {0},", frameData.handDataPackage.joints.Count);
-
+            HandDataPackage handData = frameData.handDataPackage;
+            
+            Debug.LogFormat("handdata joint_0 len : {0},", frameData.handDataPackage.joints.Count);            
+            Debug.LogFormat("handdata 0 x : {0},", frameData.handDataPackage.joints[0].u);
             // string str = handData.joints[0].x.ToString();
             // Console.WriteLine(str); 
             // var joints_0 = handData["joints_0"];

@@ -64,7 +64,6 @@ class HandTracker():
             return joint_uvd_list
 
         else:
-            debug_i = 0
             for bbox, img_crop, img2bb_trans, bb2img_trans, flag_flip in \
                     zip(bbox_list, img_crop_list, img2bb_trans_list, bb2img_trans_list, flag_flip_list):
                 # crop_name = 'crop_{}'.format(debug_i)
@@ -214,6 +213,7 @@ class HandTracker():
             img2bb_trans_list.append(img2bb_trans)
             bb2img_trans_list.append(bb2img_trans)
             flag_flip_list.append(flag_flip)
+
 
             flag_flip = not flag_flip
             bbox = self.extract_bbox(idx_to_coord_1, image_rows, image_cols)
